@@ -1,4 +1,4 @@
-const { UserProfile } = require("../models");
+const { UserProfile, Tokens } = require("../models");
 
 // Int -> UserProfile
 exports.getUserById = async (id) => {
@@ -49,6 +49,23 @@ exports.createUser = async (user) => {
             passwordHash: user.passwordHash,
         });
         return newUser;
+    } catch (error) {
+        throw error;
+    }
+};
+
+exports.setRefreshToken = async (userId, token) => {
+    try {
+        const user = await UserProfile.findByPk(userId);
+        if (user) {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 7);
+            const tokenResult = await Tokens.create({ token: token, type: "refresh", expiresAt: expiresAt, userId: userId });
+
+            return tokenResult;
+        } else {
+            throw new Error("User not found");
+        }
     } catch (error) {
         throw error;
     }

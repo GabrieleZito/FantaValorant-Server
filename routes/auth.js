@@ -1,9 +1,10 @@
 const express = require("express");
 const { UserSchema } = require("../utils/zod/userSchema");
 const { hashPassword } = require("../utils/misc/encrypt");
-const { createUser, getUserByEmail, getUserByUsername } = require("../database/users");
+const { createUser, getUserByEmail, getUserByUsername, setRefreshToken } = require("../database/users");
 const router = express.Router();
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 require("../middlewares/passport-strategies");
 
 router.post("/register", async (req, res) => {
@@ -79,12 +80,24 @@ router.post("/login", function (req, res, next) {
             //in case the user is empty
             return res.status(401).json(info);
         }
+        //TODO continuare jwt persistent login
+        /* const accessToken = jwt.sign({ username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+        const refreshToken = jwt.sign({ username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+
+        try {
+            const token = setRefreshToken(user.id, refreshToken);
+            console.log(token);
+        } catch (error) {
+            res.status(400).json(error);
+        } */
 
         req.login(user, (err) => {
             if (err) return next(err);
+            //res.cookie("jwt", refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 });
             return res.json({
                 success: true,
                 data: req.user,
+                //accessToken: accessToken,
                 message: "Login Successfull",
             });
         });
