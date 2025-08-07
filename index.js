@@ -39,7 +39,7 @@ app.use(
         cookie: {
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            maxAge: 60 * 60 * 24 * 1,
+            maxAge: 60 * 60 * 24 * 1000,
         },
     })
 );
@@ -51,7 +51,14 @@ app.use(passport.session());
 
 //routes
 const authRouter = require("./routes/auth.js");
-
+const usersRouter = require("./routes/users.js");
+const { getReceivedFriendRequests } = require("./database/users.js");
 app.use("/auth", authRouter);
+app.use("/users", usersRouter);
+
+app.get("/prova", async (req, res) => {
+    const r = await getReceivedFriendRequests(2);
+    res.json(r);
+});
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

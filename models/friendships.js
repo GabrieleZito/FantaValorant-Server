@@ -15,25 +15,25 @@ Friendships.init(
             allowNull: false,
             defaultValue: "pending",
         },
-        requesterId: {
+        senderId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            field: "requester_id",
+            field: "sender_id",
         },
-        addresseeId: {
+        receiverId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            field: "addressee_id",
+            field: "receiver_id",
         },
     },
     {
         indexes: [
-            { fields: ["requester_id"] },
-            { fields: ["addressee_id"] },
+            { fields: ["sender_id"] },
+            { fields: ["receiver_id"] },
             { fields: ["status"] },
-            { fields: ["requester_id", "status"] },
-            { fields: ["addressee_id", "status"] },
-            { fields: ["requester_id", "addressee_id"], unique: true },
+            { fields: ["sender_id", "status"] },
+            { fields: ["receiver_id", "status"] },
+            { fields: ["sender_id", "receiver_id"], unique: true },
         ],
         sequelize,
     }
