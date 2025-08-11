@@ -2,7 +2,6 @@ const morgan = require("morgan");
 const cors = require("cors");
 require("dotenv").config();
 const passport = require("passport");
-const PassportLocal = require("passport-local");
 
 const express = require("express");
 const http = require("http");
@@ -19,6 +18,9 @@ const io = new Server(server);
 //initialize database
 const sequelize = require("./config/sequelize.js");
 sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connected"));
+
+//TODO add csrf protection
+//TODO check helmet()
 
 //middleware
 app.set("trust proxy", 1);
@@ -52,10 +54,12 @@ app.use(passport.session());
 //routes
 const authRouter = require("./routes/auth.js");
 const usersRouter = require("./routes/users.js");
-const { getReceivedFriendRequests } = require("./database/users.js");
+const leaguesRouter = require("./routes/leagues.js");
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
+app.use("/leagues", leaguesRouter);
 
+const { getReceivedFriendRequests } = require("./database/users.js");
 app.get("/prova", async (req, res) => {
     const r = await getReceivedFriendRequests(2);
     res.json(r);
