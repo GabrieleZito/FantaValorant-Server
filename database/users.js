@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const { UserProfile, Tokens, Friendships } = require("../models");
+const { hashString, hashToken } = require("../utils/misc/encrypt");
 
 // Int -> UserProfile
 exports.getUserById = async (id) => {
@@ -50,23 +51,6 @@ exports.createUser = async (user) => {
             passwordHash: user.passwordHash,
         });
         return newUser;
-    } catch (error) {
-        throw error;
-    }
-};
-
-exports.setRefreshToken = async (userId, token) => {
-    try {
-        const user = await UserProfile.findByPk(userId);
-        if (user) {
-            const expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + 7);
-            const tokenResult = await Tokens.create({ token: token, type: "refresh", expiresAt: expiresAt, userId: userId });
-
-            return tokenResult;
-        } else {
-            throw new Error("User not found");
-        }
     } catch (error) {
         throw error;
     }
@@ -204,6 +188,25 @@ exports.getFriends = async (userId) => {
         });
         return friends;
     } catch (error) {
+        throw error;
+    }
+};
+
+exports.getUserByRefreshToken = async (refreshToken) => {
+    try {
+        const tokenHash = hashToken(refreshToken);
+        const user = await UserProfile.findOne({
+            include: {
+                model: Tokens,
+                as: "tokens",
+                where: {
+                    tokenHash: tokenHash,
+                },
+            },
+        });
+        return user;
+    } catch (error) {
+        console.error("Error in getUserByRefreshToken: " + error);
         throw error;
     }
 };

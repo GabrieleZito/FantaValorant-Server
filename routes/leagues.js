@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { isLoggedIn } = require("../middlewares/auth");
 const { LeagueSchema } = require("../utils/zod/LeagueSchema");
-const { createLeague, createLeagueMember, checkLeagueDuplicate } = require("../database/leagues");
+const { createLeague, createLeagueMember, checkLeagueDuplicate, getJoinedLeagues } = require("../database/leagues");
 
 router.post("/", isLoggedIn, async (req, res) => {
     const data = req.body;
@@ -40,6 +40,24 @@ router.post("/", isLoggedIn, async (req, res) => {
         res.status(400).json({
             success: false,
             message: "Validation failed",
+        });
+    }
+});
+
+router.get("/", isLoggedIn, async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const joinedLeagues = await getJoinedLeagues(userId);
+        res.status(200).json({
+            success: true,
+            message: "Joined leagues retrieved",
+            data: joinedLeagues,
+        });
+    } catch (error) {
+        console.error("Error getting leagues: " + error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
         });
     }
 });

@@ -9,7 +9,7 @@ UserProfile.hasMany(Friendships, { foreignKey: "receiverId", as: "ReceivedReques
 Friendships.belongsTo(UserProfile, { foreignKey: "senderId", as: "Sender" });
 Friendships.belongsTo(UserProfile, { foreignKey: "receiverId", as: "Receiver" });
 
-UserProfile.hasMany(Tokens, { foreignKey: "userId", as: "tokens" });
+UserProfile.hasMany(Tokens, { foreignKey: "userId", as: "tokens", onDelete: "CASCADE" });
 Tokens.belongsTo(UserProfile, { foreignKey: "userId", as: "user" });
 
 UserProfile.hasMany(Leagues, { foreignKey: "createdBy", as: "CreatedLeagues" });

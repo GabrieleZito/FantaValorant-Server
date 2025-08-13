@@ -1,7 +1,7 @@
 const passport = require("passport");
 const PassportLocal = require("passport-local");
 const { getUserByEmail, getUserById } = require("../database/users");
-const { verifyPassword } = require("../utils/misc/encrypt");
+const { verifyString } = require("../utils/misc/encrypt");
 
 passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -21,7 +21,7 @@ passport.use(
         async (email, password, done) => {
             try {
                 const user = await getUserByEmail(email);
-                if (user && (await verifyPassword(password, user.passwordHash))) {
+                if (user && (await verifyString(password, user.passwordHash))) {
                     done(null, user);
                 } else {
                     done(null, false);

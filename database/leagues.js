@@ -1,4 +1,4 @@
-const { Leagues, LeagueMembers } = require("../models");
+const { Leagues, LeagueMembers, UserProfile } = require("../models");
 
 exports.createLeague = async (data, userId) => {
     try {
@@ -82,6 +82,21 @@ exports.checkLeagueDuplicate = async (name, isPublic, userId) => {
         }
     } catch (error) {
         console.error("Error in checkLeagueDuplicate: " + error);
+        throw error;
+    }
+};
+
+exports.getJoinedLeagues = async (userId) => {
+    try {
+        const user = await UserProfile.findByPk(userId, {
+            include: {
+                model: Leagues,
+                as: "JoinedLeagues",
+            },
+        });
+        return user.JoinedLeagues;
+    } catch (error) {
+        console.error("Error in getJoinedLeagues: ", error);
         throw error;
     }
 };

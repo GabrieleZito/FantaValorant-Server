@@ -7,6 +7,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
 
 const PORT = 3000;
 
@@ -24,6 +25,7 @@ sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connec
 
 //middleware
 app.set("trust proxy", 1);
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(
@@ -59,10 +61,11 @@ app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/leagues", leaguesRouter);
 
-const { getReceivedFriendRequests } = require("./database/users.js");
-app.get("/prova", async (req, res) => {
-    const r = await getReceivedFriendRequests(2);
-    res.json(r);
+const { authenticateToken } = require("./middlewares/auth.js");
+app.get("/prova", authenticateToken, async (req, res) => {
+    const cookies = req.cookies;
+    const user = req.user;
+    res.json({ cookies, user });
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));
