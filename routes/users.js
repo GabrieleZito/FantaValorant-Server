@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn } = require("../middlewares/auth");
+const { isLoggedIn, authenticateToken } = require("../middlewares/auth");
 const {
     getUserByUsername,
     findAcceptedFriendship,
@@ -12,7 +12,7 @@ const {
     getFriends,
 } = require("../database/users");
 
-router.post("/friend-requests", isLoggedIn, async (req, res) => {
+router.post("/friend-requests", authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const { username } = req.body;
 
@@ -71,7 +71,7 @@ router.post("/friend-requests", isLoggedIn, async (req, res) => {
     }
 });
 
-router.get("/friend-requests/received", isLoggedIn, async (req, res) => {
+router.get("/friend-requests/received", authenticateToken, async (req, res) => {
     const userId = req.user.id;
     try {
         const receivedRequests = await getReceivedFriendRequests(userId);
@@ -85,7 +85,7 @@ router.get("/friend-requests/received", isLoggedIn, async (req, res) => {
     }
 });
 
-router.patch("/friend-requests/:requestId/accept", isLoggedIn, async (req, res) => {
+router.patch("/friend-requests/:requestId/accept", authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const requestId = req.params["requestId"];
     try {
@@ -118,7 +118,7 @@ router.patch("/friend-requests/:requestId/accept", isLoggedIn, async (req, res) 
     }
 });
 
-router.patch("/friend-requests/:requestId/decline", isLoggedIn, async (req, res) => {
+router.patch("/friend-requests/:requestId/decline", authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const requestId = req.params["requestId"];
     try {
@@ -146,8 +146,10 @@ router.patch("/friend-requests/:requestId/decline", isLoggedIn, async (req, res)
     }
 });
 
-router.get("/friends", isLoggedIn, async (req, res) => {
+router.get("/friends", authenticateToken, async (req, res) => {
     const userId = req.user.id;
+    //console.log("cookies: ");
+    //console.log(req.cookies);
     try {
         const friends = await getFriends(userId);
         //console.log("get friend requests for id ", userId);

@@ -32,6 +32,7 @@ app.use(
     cors({
         origin: [process.env.SOCKET_URL, process.env.CLIENT_URL],
         credentials: true,
+        allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
     })
 );
 app.use(

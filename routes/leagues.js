@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn } = require("../middlewares/auth");
+const { isLoggedIn, authenticateToken } = require("../middlewares/auth");
 const { LeagueSchema } = require("../utils/zod/LeagueSchema");
 const { createLeague, createLeagueMember, checkLeagueDuplicate, getJoinedLeagues } = require("../database/leagues");
 
-router.post("/", isLoggedIn, async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
     const data = req.body;
     const userId = req.user.id;
     //console.log(data);
@@ -44,7 +44,7 @@ router.post("/", isLoggedIn, async (req, res) => {
     }
 });
 
-router.get("/", isLoggedIn, async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
     const userId = req.user.id;
     try {
         const joinedLeagues = await getJoinedLeagues(userId);

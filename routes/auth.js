@@ -133,6 +133,14 @@ router.post("/login", function (req, res, next) {
     })(req, res, next);
 });
 
+/* router.post("/login", async (req, res) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+}) */
+
 router.post("/logout", async (req, res) => {
     const cookies = req.cookies;
     if (!cookies?.refreshToken) return res.sendStatus(204);
@@ -159,8 +167,8 @@ router.post("/logout", async (req, res) => {
 
 router.get("/refresh", async (req, res) => {
     const cookies = req.cookies;
-    console.log("Cookies:");
-    console.log(cookies);
+    //console.log("Cookies:");
+    //console.log(cookies);
 
     if (!cookies?.refreshToken) {
         return res.status(401).json({
@@ -172,7 +180,7 @@ router.get("/refresh", async (req, res) => {
     const user = await getUserByRefreshToken(refreshToken);
     if (!user) return res.sendStatus(403);
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-        console.log("dentro jwt verify");
+        //console.log("dentro jwt verify");
 
         if (err || user.username !== decoded.username) return res.sendStatus(403);
         const { accessToken, rToken } = generateTokens(user);
@@ -188,7 +196,7 @@ const generateTokens = (user) => {
     };
 
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "30s",
+        expiresIn: "15m",
     });
 
     const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {

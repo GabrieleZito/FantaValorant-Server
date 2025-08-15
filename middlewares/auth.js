@@ -7,6 +7,9 @@ exports.isLoggedIn = (req, res, next) => {
 
 exports.authenticateToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];
+    //console.log("headers: ");
+    //console.log(req.headers);
+
     const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
     if (!token) {
