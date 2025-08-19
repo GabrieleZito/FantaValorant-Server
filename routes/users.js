@@ -148,6 +148,7 @@ router.patch("/friend-requests/:requestId/decline", authenticateToken, async (re
 
 router.get("/friends", authenticateToken, async (req, res) => {
     const userId = req.user.id;
+    //console.log(req.user);
     //console.log("cookies: ");
     //console.log(req.cookies);
     try {

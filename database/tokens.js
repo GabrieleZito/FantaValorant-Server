@@ -1,4 +1,4 @@
-const { Tokens } = require("../models");
+const { Tokens, UserProfile } = require("../models");
 const crypto = require("crypto");
 const { hashString, hashToken } = require("../utils/misc/encrypt");
 
@@ -25,20 +25,36 @@ exports.setRefreshToken = async (userId, refreshToken, deviceInfo = null, ipAddr
     }
 };
 
-exports.revokeRefreshToken = async (userId) => {
+exports.getRefreshToken = async (refreshToken) => {
     try {
+        const tokenHash = hashToken(refreshToken);
         const token = await Tokens.findOne({
             where: {
-                userId: userId,
+                type: "refresh",
+                tokenHash: tokenHash,
+            },
+            include: {
+                model: UserProfile,
+                as: "user",
+                attributes: ["username", "email", "id"],
             },
         });
-        if (!token) {
-            return null;
-        }
-        await token.update({
-            isRevoked: true,
-        });
+        return token;
     } catch (error) {
-        console.error("Error in revokeRefreshToken: " + error);
+        console.error("Error in getRefreshToken: ", error);
+        throw error;
+    }
+};
+
+exports.invalidateToken = async (tokenId) => {
+    try {
+        const token = await Tokens.findByPk(tokenId);
+        if (token) {
+            await token.update({ isRevoked: true });
+        }
+        return token;
+    } catch (error) {
+        console.error("Error in invalidateToken: ", error);
+        throw error;
     }
 };
