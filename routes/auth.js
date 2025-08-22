@@ -197,19 +197,11 @@ router.post("/logout", async (req, res) => {
         //maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.json({ success: true, message: "Logged out successfully" });
-    /* req.logout((err) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: "Error logging out" });
-        }
-        res.json({ success: true, message: "Logged out successfully" });
-    }); */
 });
 
 router.get("/refresh", async (req, res) => {
+    //check if refresh token is present
     const cookies = req.cookies;
-    //console.log("Cookies:");
-    //console.log(cookies);
-
     if (!cookies?.refreshToken) {
         return res.status(401).json({
             success: false,
@@ -217,13 +209,15 @@ router.get("/refresh", async (req, res) => {
         });
     }
     const refreshToken = cookies.refreshToken;
+
+    //check if if there is a user associated to the refresh token
     const user = await getUserByRefreshToken(refreshToken);
     if (!user) return res.sendStatus(403);
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-        //console.log("dentro jwt verify");
 
+    //verify the token
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
         if (err || user.username !== decoded.username) return res.sendStatus(403);
-        const { accessToken, rToken } = generateTokens(user);
+        const { accessToken, _ } = generateTokens(user);
         res.status(200).json({ accessToken });
     });
 });

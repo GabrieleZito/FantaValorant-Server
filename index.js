@@ -8,6 +8,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
+const compression = require("compression");
 
 const PORT = 3000;
 
@@ -27,6 +28,7 @@ sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connec
 app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(morgan("dev"));
+app.use(compression());
 app.use(express.json());
 app.use(
     cors({
@@ -48,11 +50,6 @@ app.use(
         },
     })
 );
-
-//passport
-require("./middlewares/passport-strategies.js");
-app.use(passport.initialize());
-app.use(passport.session());
 
 //routes
 const authRouter = require("./routes/auth.js");

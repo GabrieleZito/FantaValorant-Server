@@ -28,6 +28,11 @@ router.post("/", authenticateToken, async (req, res) => {
                     message: "League created successfully",
                     data: league,
                 });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: "Internal server error",
+                });
             }
         } catch (error) {
             console.error("Error creating league: " + error);
