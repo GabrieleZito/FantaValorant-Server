@@ -46,8 +46,11 @@ exports.getExternalMediaLink = async (game) => {
     }
 };
 
-exports.getMatches = async (game) => {
+exports.getMatches = async (game, limit = 1000) => {
     try {
+        const date = new Date();
+        const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[startdate::>${today}]]`];
         const response = await axiosConf.get(`/match?wiki=${game}`);
         return response.data.result;
     } catch (error) {
@@ -56,9 +59,12 @@ exports.getMatches = async (game) => {
     }
 };
 
-exports.getPlacements = async (game) => {
+exports.getPlacements = async (game, limit = 1000) => {
     try {
-        const response = await axiosConf.get(`/placement?wiki=${game}`);
+        const date = new Date();
+        const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[startdate::>${today}]]`];
+        const response = await axiosConf.get(`/placement?${parameters.join("&")}`);
         return response.data.result;
     } catch (error) {
         console.error("Error in getplacement: ", error);
@@ -126,9 +132,13 @@ exports.getTeams = async (game) => {
     }
 };
 
-exports.getTournaments = async (game) => {
+exports.getTournaments = async (game, limit = 1000) => {
     try {
-        const response = await axiosConf.get(`/tournament?wiki=${game}`);
+        const date = new Date();
+        const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[startdate::>${today}]]`];
+
+        const response = await axiosConf.get(`/tournament?${parameters.join("&")}`);
         return response.data.result;
     } catch (error) {
         console.error("Error in getTournaments: ", error);

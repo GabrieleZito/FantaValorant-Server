@@ -7,12 +7,15 @@ const { createLeague, createLeagueMember, checkLeagueDuplicate, getJoinedLeagues
 router.post("/", authenticateToken, async (req, res) => {
     const data = req.body;
     const userId = req.user.id;
-    //console.log(data);
+
     const result = LeagueSchema.safeParse(data);
+
+    //validating data
     if (result.success) {
         const newLeague = result.data;
-        //console.log(newLeague);
+        console.log(newLeague);
         try {
+            //checking for league duplicate
             const existingLeague = await checkLeagueDuplicate(newLeague.name, newLeague.isPublic, userId);
             if (existingLeague) {
                 return res.status(409).json({
@@ -20,20 +23,26 @@ router.post("/", authenticateToken, async (req, res) => {
                     message: `${newLeague.isPublic ? "Public" : "Private"} league name already exists`,
                 });
             }
+
+            //creating league and member association
             const league = await createLeague(newLeague, userId);
             const leagueMember = await createLeagueMember(userId, league.id, newLeague.coinsPerUser);
             if (league && leagueMember) {
-                res.status(200).json({
+
+                if(newLeague.tournament == "all"){
+                    
+                }
+
+                return res.status(200).json({
                     success: true,
                     message: "League created successfully",
                     data: league,
                 });
-            } else {
-                res.status(500).json({
-                    success: false,
-                    message: "Internal server error",
-                });
             }
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+            });
         } catch (error) {
             console.error("Error creating league: " + error);
             res.status(500).json({

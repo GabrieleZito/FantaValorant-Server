@@ -19,10 +19,14 @@ const io = new Server(server);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: true, alter: false }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
+
+//schedulers
+require("./schedulers/daily/updateTournaments.js");
+require("./schedulers/daily/updatePlacements.js");
 
 //middleware
 app.set("trust proxy", 1);
@@ -55,15 +59,16 @@ app.use(
 const authRouter = require("./routes/auth.js");
 const usersRouter = require("./routes/users.js");
 const leaguesRouter = require("./routes/leagues.js");
+app.use("/public", express.static("public"));
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/leagues", leaguesRouter);
 
 const { authenticateToken } = require("./middlewares/auth.js");
-app.get("/prova", authenticateToken, async (req, res) => {
-    const cookies = req.cookies;
-    const user = req.user;
-    res.json({ cookies, user });
+const { getCurrentVCTTournaments, getTournaments } = require("./api/liquipedia.js");
+app.get("/prova", async (req, res) => {
+    const resp = await getTournaments("valorant");
+    res.json(resp);
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

@@ -1,4 +1,5 @@
 const { Leagues, LeagueMembers, UserProfile } = require("../models");
+const Tournaments = require("../models/tournaments");
 
 exports.createLeague = async (data, userId) => {
     try {
@@ -100,3 +101,5 @@ exports.getJoinedLeagues = async (userId) => {
         throw error;
     }
 };
+
+
