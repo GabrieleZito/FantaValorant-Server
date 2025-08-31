@@ -46,15 +46,21 @@ exports.getExternalMediaLink = async (game) => {
     }
 };
 
-exports.getMatches = async (game, limit = 1000) => {
+exports.getFinishedSeries = async (game, limit = 1000) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[startdate::>${today}]]`];
-        const response = await axiosConf.get(`/match?wiki=${game}`);
+        //const today = "2025-08-25";
+        const response = await axiosConf.get(`/match`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                conditions: `[[date::>${today}]] AND [[finished::1]] AND [[liquipediatiertype::!Showmatch]]`,
+            },
+        });
         return response.data.result;
     } catch (error) {
-        console.error("Error in getMatches: ", error);
+        //console.error("Error in getMatches: ", error);
         throw error;
     }
 };
@@ -75,6 +81,18 @@ exports.getPlacements = async (game, limit = 1000) => {
 exports.getPlayers = async (game) => {
     try {
         const response = await axiosConf.get(`/player?wiki=${game}`);
+        return response.data.result;
+    } catch (error) {
+        console.error("Error in getPlayers: ", error);
+        throw error;
+    }
+};
+
+exports.getPlayer = async (game, name) => {
+    try {
+        const response = await axiosConf.get(`/player?wiki=${game}&[[pagename::${name}]]`);
+        console.log(`QUERY:    /player?wiki=${game}&[[pagename::${name}]]`);
+
         return response.data.result;
     } catch (error) {
         console.error("Error in getPlayers: ", error);
@@ -122,12 +140,24 @@ exports.getStandingsTables = async (game) => {
     }
 };
 
-exports.getTeams = async (game) => {
+exports.getTeams = async (game, limit = 1000) => {
     try {
-        const response = await axiosConf.get(`/team?wiki=${game}`);
+        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[status::active]]`];
+        const response = await axiosConf.get(`/team?${parameters.join("&")}`);
         return response.data.result;
     } catch (error) {
         console.error("Error in getTeams: ", error);
+        throw error;
+    }
+};
+
+exports.getTeam = async (game, name, limit = 1000) => {
+    try {
+        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[status::active]]+AND+[[name::${name}]]`];
+        const response = await axiosConf.get(`/team?${parameters.join("&")}`);
+        return response.data.result;
+    } catch (error) {
+        console.error("Error in getTeam: ", error);
         throw error;
     }
 };

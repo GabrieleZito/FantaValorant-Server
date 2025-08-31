@@ -19,7 +19,7 @@ const io = new Server(server);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: true, alter: false }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: true, alter: true }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
@@ -27,6 +27,8 @@ sequelize.sync({ force: true, alter: false }).then(() => console.log("DB Connect
 //schedulers
 require("./schedulers/daily/updateTournaments.js");
 require("./schedulers/daily/updatePlacements.js");
+require("./schedulers/daily/updateTeams.js");
+require("./schedulers/daily/updateMatches.js");
 
 //middleware
 app.set("trust proxy", 1);
@@ -66,9 +68,13 @@ app.use("/leagues", leaguesRouter);
 
 const { authenticateToken } = require("./middlewares/auth.js");
 const { getCurrentVCTTournaments, getTournaments } = require("./api/liquipedia.js");
+const { getMatchSeriesByObjectname } = require("./database/liquipedia.js");
+const updateMatches = require("./schedulers/daily/updateMatches.js");
 app.get("/prova", async (req, res) => {
-    const resp = await getTournaments("valorant");
-    res.json(resp);
+    /* const resp = await getMatchSeriesByObjectname("68824_G8t8XvsuYj_R01-M001");
+    res.json(resp); */
+    updateMatches();
+    res.json("awda");
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

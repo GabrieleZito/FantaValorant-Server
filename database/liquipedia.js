@@ -1,4 +1,6 @@
+const { ValorantTeams, Matches, PlayerTeamMatches, MatchSeries } = require("../models");
 const Placements = require("../models/placements");
+const Players = require("../models/players");
 const Tournaments = require("../models/tournaments");
 
 exports.createTournament = async (tournament) => {
@@ -104,6 +106,165 @@ exports.updatePlacement = async (oldP, newP) => {
         return updated;
     } catch (error) {
         console.error("Error in updatePlacement: ", error);
+        throw error;
+    }
+};
+
+exports.getTeamByPagename = async (pagename) => {
+    try {
+        const team = await ValorantTeams.findOne({
+            where: {
+                pagename: pagename,
+            },
+        });
+        return team;
+    } catch (error) {
+        console.error("Error in getTeamByPagename: ", error);
+        throw error;
+    }
+};
+
+exports.createValorantTeam = async (team) => {
+    try {
+        const newteam = await ValorantTeams.create({
+            pagename: team.pagename,
+            objectname: team.objectname,
+            name: team.name,
+            region: team.region,
+            logo: team.logo,
+            logourl: team.logourl,
+            logodark: team.logodark,
+            logodarkurl: team.logodarkurl,
+            createdate: team.createdate,
+            earnings: team.earnings,
+            template: team.template,
+            status: team.status,
+        });
+        return newteam;
+    } catch (error) {
+        console.error("Error in createValorantTeam: ", error);
+        throw error;
+    }
+};
+
+exports.updateValorantTeam = async (oldT, newT) => {
+    try {
+        const updated = await oldT.update(newT);
+        return updated;
+    } catch (error) {
+        console.error("Error in updateValorantTeam: ", error);
+        throw error;
+    }
+};
+
+exports.getMatchSeriesByObjectname = async (objectname) => {
+    try {
+        const match = await MatchSeries.findOne({
+            where: {
+                objectname: objectname,
+            },
+            include: {
+                model: Matches,
+                as: "Matches",
+                include: {
+                    model: PlayerTeamMatches,
+                    include: [{ model: ValorantTeams }, { model: Players }],
+                },
+            },
+        });
+        return match;
+    } catch (error) {
+        console.error("Error in getMatchByObjectname: ", error);
+        throw error;
+    }
+};
+
+exports.createMatchSeries = async (m) => {
+    try {
+        const matchseries = await MatchSeries.create(m);
+        return matchseries;
+    } catch (error) {
+        console.error("Error in createMatchSeries: ", error);
+        throw error;
+    }
+};
+
+exports.getValorantTeamByName = async (name) => {
+    try {
+        const valorantTeam = await ValorantTeams.findOne({
+            where: {
+                name: name,
+            },
+        });
+        return valorantTeam;
+    } catch (error) {
+        console.error("Error in getValorantTeamByName: ", error);
+        throw error;
+    }
+};
+
+exports.getPlayerByName = async (name) => {
+    try {
+        const player = await Players.findOne({
+            where: {
+                name: name,
+            },
+        });
+        return player;
+    } catch (error) {
+        console.error("Error in getPlayerByName: ", error);
+        throw error;
+    }
+};
+
+exports.createPlayer = async (player) => {
+    try {
+        const newP = await Players.create(player, {
+            fields: [
+                "pagename",
+                "objectname",
+                "alternateid",
+                "name",
+                "nationality",
+                "nationality2",
+                "nationality3",
+                "region",
+                "birthdate",
+                "teampagename",
+                "teamtemplate",
+                "status",
+                "earnings",
+                "extradata",
+            ],
+        });
+        return newP;
+    } catch (error) {
+        console.log("---------------------------------------");
+        console.log("Player: ");
+        console.log(player);
+        console.log("---------------------------------------");
+        console.error("Error in createPlayer: ", error);
+
+        throw error;
+    }
+};
+
+exports.createMatch = async (m) => {
+    try {
+        const newM = await Matches.create(m);
+        return newM;
+    } catch (error) {
+        console.error("Error in createMatch: ", error);
+        throw error;
+    }
+};
+
+exports.createPlayerTeamMatch = async (ptm) => {
+    try {
+        const newPTM = await PlayerTeamMatches.create(ptm);
+        return newPTM;
+    } catch (error) {
+        console.error("Error in createPlayerTeamMatch: ", error);
         throw error;
     }
 };

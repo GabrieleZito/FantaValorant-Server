@@ -3,6 +3,7 @@ const LeagueMembers = require("./leagueMembers");
 const Leagues = require("./leagues");
 const LeagueTournaments = require("./leagueTournaments");
 const Matches = require("./matches");
+const MatchSeries = require("./matchseries");
 const Placements = require("./placements");
 const Players = require("./players");
 const PlayerTeamMatches = require("./playerTeamMatches");
@@ -31,8 +32,11 @@ Tournaments.belongsToMany(Leagues, { through: LeagueTournaments, as: "League", o
 Tournaments.hasMany(Placements, { as: "Placements", foreignKey: "tournamentId" });
 Placements.belongsTo(Tournaments, { as: "Tournament", foreignKey: "tournamentId" });
 
-Tournaments.hasMany(Matches, { as: "Matches", foreignKey: "tournamentId" });
-Matches.belongsTo(Tournaments, { as: "Tournament", foreignKey: "tournamentId" });
+Tournaments.hasMany(MatchSeries, { as: "MatchSeries", foreignKey: "tournamentId" });
+MatchSeries.belongsTo(Tournaments, { as: "Tournament", foreignKey: "tournamentId" });
+
+MatchSeries.hasMany(Matches, { as: "Matches", foreignKey: "matchSeriesId" });
+Matches.belongsTo(MatchSeries, { as: "Series", foreignKey: "matchSeriesId" });
 
 Matches.hasMany(PlayerTeamMatches, { foreignKey: "matchId" });
 ValorantTeams.hasMany(PlayerTeamMatches, { foreignKey: "teamId" });
@@ -41,6 +45,9 @@ Players.hasMany(PlayerTeamMatches, { foreignKey: "playerId" });
 PlayerTeamMatches.belongsTo(Matches, { foreignKey: "matchId" });
 PlayerTeamMatches.belongsTo(ValorantTeams, { foreignKey: "teamId" });
 PlayerTeamMatches.belongsTo(Players, { foreignKey: "playerId" });
+
+ValorantTeams.hasMany(MatchSeries, { as: "SeriesWon", foreignKey: "winner" });
+MatchSeries.belongsTo(ValorantTeams, { as: "Winner", foreignKey: "winner" });
 
 module.exports = {
     UserProfile,
@@ -53,4 +60,7 @@ module.exports = {
     Matches,
     Placements,
     PlayerTeamMatches,
+    MatchSeries,
+    Players,
+    Tournaments,
 };

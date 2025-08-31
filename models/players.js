@@ -7,7 +7,6 @@ Players.init(
     {
         pagename: { type: STRING },
         objectname: { type: STRING },
-        liquipediaid: { type: STRING },
         alternateid: { type: STRING },
         name: { type: STRING },
         nationality: { type: STRING },
