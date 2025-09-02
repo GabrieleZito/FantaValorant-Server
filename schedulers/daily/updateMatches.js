@@ -15,12 +15,13 @@ const { MatchSeries, Matches, PlayerTeamMatches } = require("../../models");
 cron.schedule("30 0 23 * * *", updateMatches);
 
 async function updateMatches() {
+    const data = require("../../series.json");
     console.log("Updating matches");
     try {
         // get all the future match series
-        const series = await getFinishedSeries("valorant");
+        const series = data.result; //await getFinishedSeries("valorant");
         console.log("series length: ", series.length);
-        await Promise.all(
+        const result = await Promise.all(
             series.map(async (s) => {
                 let team1, team2;
                 if (s.match2opponents) {
@@ -39,7 +40,7 @@ async function updateMatches() {
                 }
                 const series = await createMatchSeries(s);
 
-                await Promise.all(
+                const result1 = await Promise.all(
                     s.match2games.map(async (m) => {
                         m.winner = m.winner == "1" ? team1.id : team2.id;
                         m.matchSeriesId = series.id;
@@ -73,8 +74,10 @@ async function updateMatches() {
                         }
                     })
                 );
+                return series;
             })
         );
+        return result;
     } catch (error) {
         console.error("Error updating matches: ", error);
     }
@@ -100,20 +103,17 @@ async function getOrCreateTeam(name) {
 }
 
 async function getOrCreatePlayer(name) {
-    //console.log(name);
     let player = await getPlayerByName(name);
-    //console.log(player);
     if (!player) {
         const newPlayer = await getPlayer("valorant", name);
         //console.log(newPlayer);
+        await new Promise((r) => setTimeout(r, 1000));
         if (newPlayer) {
             player = await createPlayer(newPlayer[0]);
         }
+        console.log("_________________________");
+        console.log(player);
     }
-    //console.log("------------------------------");
-    //console.log(player);
-    //console.log("------------------------------");
-
     return player;
 }
 

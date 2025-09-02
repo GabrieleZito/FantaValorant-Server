@@ -217,6 +217,20 @@ exports.getPlayerByName = async (name) => {
     }
 };
 
+exports.getPlayerByPagename = async (pagename) => {
+    try {
+        const player = await Players.findOne({
+            where: {
+                pagename: pagename,
+            },
+        });
+        return player;
+    } catch (error) {
+        console.error("Error in getPlayerByPagename: ", error);
+        throw error;
+    }
+};
+
 exports.createPlayer = async (player) => {
     try {
         const newP = await Players.create(player, {
@@ -239,12 +253,7 @@ exports.createPlayer = async (player) => {
         });
         return newP;
     } catch (error) {
-        console.log("---------------------------------------");
-        console.log("Player: ");
-        console.log(player);
-        console.log("---------------------------------------");
-        console.error("Error in createPlayer: ", error);
-
+        console.log("Error in createPlayer: ", error);
         throw error;
     }
 };

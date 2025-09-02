@@ -1,7 +1,6 @@
 const morgan = require("morgan");
 const cors = require("cors");
 require("dotenv").config();
-const passport = require("passport");
 
 const express = require("express");
 const http = require("http");
@@ -9,17 +8,32 @@ const { Server } = require("socket.io");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
+const { instrument } = require("@socket.io/admin-ui");
 
 const PORT = 3000;
 
 //initialize server
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: ["https://admin.socket.io", process.env.CLIENT_URL],
+        credentials: true,
+    },
+});
+
+//Socket.io admin
+instrument(io, {
+    auth: false,
+    mode: "development",
+});
+
+const socketHandler = require("./socket/socketHandler.js");
+socketHandler(io);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: true, alter: true }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
@@ -66,15 +80,13 @@ app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/leagues", leaguesRouter);
 
-const { authenticateToken } = require("./middlewares/auth.js");
-const { getCurrentVCTTournaments, getTournaments } = require("./api/liquipedia.js");
-const { getMatchSeriesByObjectname } = require("./database/liquipedia.js");
 const updateMatches = require("./schedulers/daily/updateMatches.js");
+const updateTeams = require("./schedulers/daily/updateTeams.js");
+const updatePlayers = require("./schedulers/daily/updatePlayers.js");
+const updateTournaments = require("./schedulers/daily/updateTournaments.js");
 app.get("/prova", async (req, res) => {
-    /* const resp = await getMatchSeriesByObjectname("68824_G8t8XvsuYj_R01-M001");
-    res.json(resp); */
-    updateMatches();
-    res.json("awda");
+    updateTournaments();
+    res.json("result");
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

@@ -50,7 +50,7 @@ exports.getFinishedSeries = async (game, limit = 1000) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        //const today = "2025-08-25";
+        //const today = "2025-08-30";
         const response = await axiosConf.get(`/match`, {
             params: {
                 wiki: game,
@@ -65,12 +65,18 @@ exports.getFinishedSeries = async (game, limit = 1000) => {
     }
 };
 
-exports.getPlacements = async (game, limit = 1000) => {
+exports.getPlacements = async (game, limit = 1000, offset = 0) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[startdate::>${today}]]`];
-        const response = await axiosConf.get(`/placement?${parameters.join("&")}`);
+        const response = await axiosConf.get(`/placement`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+                conditions: `[[date::>${today}]] OR [[date::${today}]]`,
+            },
+        });
         return response.data.result;
     } catch (error) {
         console.error("Error in getplacement: ", error);
@@ -78,9 +84,16 @@ exports.getPlacements = async (game, limit = 1000) => {
     }
 };
 
-exports.getPlayers = async (game) => {
+//GET all players
+exports.getPlayers = async (game, limit = 1000, offset = 0) => {
     try {
-        const response = await axiosConf.get(`/player?wiki=${game}`);
+        const response = await axiosConf.get(`/player`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+            },
+        });
         return response.data.result;
     } catch (error) {
         console.error("Error in getPlayers: ", error);
@@ -88,10 +101,11 @@ exports.getPlayers = async (game) => {
     }
 };
 
+//GET player by name
 exports.getPlayer = async (game, name) => {
     try {
-        const response = await axiosConf.get(`/player?wiki=${game}&[[pagename::${name}]]`);
-        console.log(`QUERY:    /player?wiki=${game}&[[pagename::${name}]]`);
+        //console.log(`QUERY:    /player?wiki=${game}&[[pagename::${name}]]`);
+        const response = await axiosConf.get(`/player?wiki=${game}&[[pagename::${name}]]&t=${Date.now()}`);
 
         return response.data.result;
     } catch (error) {
@@ -140,10 +154,15 @@ exports.getStandingsTables = async (game) => {
     }
 };
 
-exports.getTeams = async (game, limit = 1000) => {
+exports.getTeams = async (game, limit = 1000, offset = 0) => {
     try {
-        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[status::active]]`];
-        const response = await axiosConf.get(`/team?${parameters.join("&")}`);
+        const response = await axiosConf.get(`/team`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+            },
+        });
         return response.data.result;
     } catch (error) {
         console.error("Error in getTeams: ", error);
@@ -162,13 +181,18 @@ exports.getTeam = async (game, name, limit = 1000) => {
     }
 };
 
-exports.getTournaments = async (game, limit = 1000) => {
+exports.getTournaments = async (game, limit = 1000, offset = 0) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[startdate::>${today}]]`];
-
-        const response = await axiosConf.get(`/tournament?${parameters.join("&")}`);
+        const response = await axiosConf.get(`/tournament`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+                conditions: `[[startdate::>${today}]] OR [[startdate::${today}]]`,
+            },
+        });
         return response.data.result;
     } catch (error) {
         console.error("Error in getTournaments: ", error);

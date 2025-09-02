@@ -8,32 +8,70 @@ cron.schedule("0 0 23 * * *", updateTournaments);
 async function updateTournaments() {
     console.log("Updating tournaments");
     try {
-        const tournaments = await getTournaments("valorant");
-        const result = await Promise.all(
-            tournaments.map(async (t) => {
-                const found = await getTournamentByPagename(t.pagename);
-                if (t.iconurl) {
-                    t.iconurl = await downloadImage(t.iconurl, `tournaments/${t.icon}`);
-                }
-                if (t.icondarkurl) {
-                    t.icondarkurl = await downloadImage(t.icondarkurl, `tournaments/${t.icondark}`);
-                }
-                if (t.bannerurl) {
-                    t.bannerurl = await downloadImage(t.bannerurl, `tournaments/${t.banner}`);
-                }
-                if (t.bannerdarkurl) {
-                    t.bannerdarkurl = await downloadImage(t.bannerdarkurl, `tournaments/${t.bannerdark}`);
-                }
-                if (!found) {
-                    return await createTournament(t);
-                }
-                const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
-                if (hasChanges) {
-                    return await updateTournament(found, t);
-                }
-            })
+        let os = 0;
+        let results = [];
+
+        let tournaments = await getTournaments("valorant");
+        results.concat(
+            await Promise.all(
+                tournaments.map(async (t) => {
+                    const found = await getTournamentByPagename(t.pagename);
+                    if (t.iconurl) {
+                        t.iconurl = await downloadImage(t.iconurl, `tournaments/${t.icon}`);
+                    }
+                    if (t.icondarkurl) {
+                        t.icondarkurl = await downloadImage(t.icondarkurl, `tournaments/${t.icondark}`);
+                    }
+                    if (t.bannerurl) {
+                        t.bannerurl = await downloadImage(t.bannerurl, `tournaments/${t.banner}`);
+                    }
+                    if (t.bannerdarkurl) {
+                        t.bannerdarkurl = await downloadImage(t.bannerdarkurl, `tournaments/${t.bannerdark}`);
+                    }
+                    if (!found) {
+                        return await createTournament(t);
+                    }
+                    const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
+                    if (hasChanges) {
+                        return await updateTournament(found, t);
+                    }
+                })
+            )
         );
+        while (tournaments.length > 0) {
+            os += 1000;
+            tournaments = await getTournaments("valorant", 1000, os);
+            results.concat(
+                await Promise.all(
+                    tournaments.map(async (t) => {
+                        const found = await getTournamentByPagename(t.pagename);
+                        if (t.iconurl) {
+                            t.iconurl = await downloadImage(t.iconurl, `tournaments/${t.icon}`);
+                        }
+                        if (t.icondarkurl) {
+                            t.icondarkurl = await downloadImage(t.icondarkurl, `tournaments/${t.icondark}`);
+                        }
+                        if (t.bannerurl) {
+                            t.bannerurl = await downloadImage(t.bannerurl, `tournaments/${t.banner}`);
+                        }
+                        if (t.bannerdarkurl) {
+                            t.bannerdarkurl = await downloadImage(t.bannerdarkurl, `tournaments/${t.bannerdark}`);
+                        }
+                        if (!found) {
+                            return await createTournament(t);
+                        }
+                        const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
+                        if (hasChanges) {
+                            return await updateTournament(found, t);
+                        }
+                    })
+                )
+            );
+        }
+        return results;
     } catch (error) {
         console.error("Error in scheduler updating tournaments: ", error);
     }
 }
+
+module.exports = updateTournaments;

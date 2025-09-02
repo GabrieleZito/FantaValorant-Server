@@ -13,7 +13,16 @@ ValorantTeams.init(
         logourl: { type: STRING },
         logodark: { type: STRING },
         logodarkurl: { type: STRING },
-        createdate: { type: DATE },
+        createdate: {
+            type: DATE,
+            set(value) {
+                if (value === "0000-01-01" || !value) {
+                    this.setDataValue("createdate", null);
+                } else {
+                    this.setDataValue("createdate", value);
+                }
+            },
+        },
         earnings: { type: INTEGER },
         template: { type: STRING },
         status: { type: STRING },
