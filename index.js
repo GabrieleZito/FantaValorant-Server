@@ -33,7 +33,7 @@ socketHandler(io);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: false, alter: true }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
@@ -84,8 +84,9 @@ const updateMatches = require("./schedulers/daily/updateMatches.js");
 const updateTeams = require("./schedulers/daily/updateTeams.js");
 const updatePlayers = require("./schedulers/daily/updatePlayers.js");
 const updateTournaments = require("./schedulers/daily/updateTournaments.js");
+const updatePlacements = require("./schedulers/daily/updatePlacements.js");
 app.get("/prova", async (req, res) => {
-    updateTournaments();
+    updatePlacements();
     res.json("result");
 });
 

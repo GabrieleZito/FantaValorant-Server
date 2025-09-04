@@ -12,6 +12,7 @@ async function updateTeams() {
         let results = [];
 
         let teams = await getTeams("valorant");
+        console.log(`Adding ${teams.length} placements`);
         results.concat(
             await Promise.all(
                 teams.map(async (t) => {
@@ -35,7 +36,7 @@ async function updateTeams() {
         while (teams.length > 999) {
             os += 1000;
             teams = await getTeams("valorant", 1000, os);
-            console.log(teams.length);
+            console.log(`Adding ${teams.length} placements`);
             results.concat(
                 await Promise.all(
                     teams.map(async (t) => {

@@ -13,6 +13,7 @@
 -   [x] (optional) data del controllo daily di ieri
 -   [] aggiungere controllo se i loghi esistono già prima di riscaricarli
 -   [] aggiungere check change sui player
+-   [] TYLOO ha il nome duplicato per due team
 
 # Client
 

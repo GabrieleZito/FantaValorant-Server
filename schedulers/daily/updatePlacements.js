@@ -1,44 +1,41 @@
 const cron = require("node-cron");
-const { getPlacements } = require("../../api/liquipedia");
-const { getPlacementByPagename, createPlacement, updatePlacement, getTournamentByPagename } = require("../../database/liquipedia");
+const { getPlacements, getTodayPlacements } = require("../../api/liquipedia");
+const {
+    getPlacementByPagename,
+    createPlacement,
+    updatePlacement,
+    getTournamentByPagename,
+    deleteTodayPlacements,
+} = require("../../database/liquipedia");
 
 cron.schedule("30 0 23 * * *", updatePlacements);
 
 async function updatePlacements() {
     console.log("Updating Placements");
     try {
+        const deleted = await deleteTodayPlacements();
+        console.log(`Deleted ${deleted} rows`);
         let os = 0;
         let results = [];
-
-        let placements = await getPlacements("valorant");
+        let placements = await getTodayPlacements("valorant");
+        console.log(`Updating ${placements.length} placements`);
         results.concat(
             await Promise.all(
                 placements.map(async (p) => {
-                    const found = await getPlacementByPagename(p.pagename);
-                    if (!found) {
-                        const tournament = await getTournamentByPagename(p.pagename);
-                        if (tournament) {
-                            return await createPlacement({ ...p, tournamentId: tournament.id });
-                        }
-                    }
-                    return await updatePlacement(found, p);
+                    const tournament = await getTournamentByPagename(p.pagename);
+                    return await createPlacement({ ...p, tournamentId: tournament ? tournament.id : null });
                 })
             )
         );
-        while (placements.length > 999) {
+        while (placements.length > 0) {
             os += 1000;
-            let placements = await getPlacements("valorant", 1000, os);
+            placements = await getTodayPlacements("valorant", 1000, os);
+            console.log(`Updating ${placements.length} placements`);
             results.concat(
                 await Promise.all(
                     placements.map(async (p) => {
-                        const found = await getPlacementByPagename(p.pagename);
-                        if (!found) {
-                            const tournament = await getTournamentByPagename(p.pagename);
-                            if (tournament) {
-                                return await createPlacement({ ...p, tournamentId: tournament.id });
-                            }
-                        }
-                        return await updatePlacement(found, p);
+                        const tournament = await getTournamentByPagename(p.pagename);
+                        return await createPlacement({ ...p, tournamentId: tournament ? tournament.id : null });
                     })
                 )
             );
@@ -47,3 +44,5 @@ async function updatePlacements() {
         console.error("Error updating placements: ", error);
     }
 }
+
+module.exports = updatePlacements;

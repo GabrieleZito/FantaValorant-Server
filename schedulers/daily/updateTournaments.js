@@ -12,6 +12,8 @@ async function updateTournaments() {
         let results = [];
 
         let tournaments = await getTournaments("valorant");
+        console.log(`Adding ${tournaments.length} tournaments`);
+
         results.concat(
             await Promise.all(
                 tournaments.map(async (t) => {
@@ -41,6 +43,8 @@ async function updateTournaments() {
         while (tournaments.length > 0) {
             os += 1000;
             tournaments = await getTournaments("valorant", 1000, os);
+            console.log(`Adding ${tournaments.length} tournaments`);
+
             results.concat(
                 await Promise.all(
                     tournaments.map(async (t) => {

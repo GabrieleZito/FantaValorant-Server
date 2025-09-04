@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-const { getTeam, getPlayer, getFinishedSeries } = require("../../api/liquipedia");
+const { getTeam, getPlayer, getFinishedSeries, getTeamByPagename, getTeamByName } = require("../../api/liquipedia");
 const {
     getMatchSeriesByObjectname,
     createMatchSeries,
@@ -9,8 +9,13 @@ const {
     createPlayer,
     createMatch,
     createPlayerTeamMatch,
+    getTournamentByName,
+    getPlacementByPagename,
+    findOrCreatePlayer,
+    findOrCreateValorantTeam,
 } = require("../../database/liquipedia");
 const { MatchSeries, Matches, PlayerTeamMatches } = require("../../models");
+const { downloadImage } = require("../../utils/misc/downloadImage");
 
 cron.schedule("30 0 23 * * *", updateMatches);
 
@@ -25,56 +30,39 @@ async function updateMatches() {
             series.map(async (s) => {
                 let team1, team2;
                 if (s.match2opponents) {
-                    team1 = await getOrCreateTeam(s.match2opponents[0].name);
-                    team2 = await getOrCreateTeam(s.match2opponents[1].name);
+                    team1 = getOrCreateTeam(s.match2opponents[0]);
+                    team2 = getOrCreateTeam(s.match2opponents[1]);
                 }
 
-                //get the winning team
-                s.winner = parseInt(s.winner);
-                if (s.match2opponents) {
-                    if (s.match2opponents[0].id == s.winner) {
-                        s.winner = team1.id;
-                    } else if (s.match2opponents[1].id == s.winner) {
-                        s.winner = team2.id;
-                    }
-                }
-                const series = await createMatchSeries(s);
+                s.winner = s.winner == 1 ? team1.id : team2.id;
 
-                const result1 = await Promise.all(
-                    s.match2games.map(async (m) => {
-                        m.winner = m.winner == "1" ? team1.id : team2.id;
-                        m.matchSeriesId = series.id;
-                        //console.log("series id: ", series.id);
-                        //console.log("m.matchseriesID: ", m.matchSeriesId);
-                        m.scores = m.scores.join("-");
-                        const match = await createMatch(m);
-                        //console.log("Participants: ");
-                        //console.log(m.participants);
-                        if (m.participants) {
-                            for (let key in m.participants) {
-                                if (m.participants[key] && m.participants[key].player) {
-                                    /* console.log("------------------------------");
-                                    console.log(key);
-                                    console.log(m.participants[key]);
-                                    console.log(m.participants[key].player);
-                                    console.log("------------------------------"); */
+                const tournament = await getTournamentByName(s.tournament);
 
-                                    const player = await getOrCreatePlayer(m.participants[key].player);
-                                    if (player) {
-                                        const teamid = key.split("_")[0] == "1" ? team1.id : team2.id;
-                                        const playerTeamMatch = await createPlayerTeamMatch({
-                                            ...m.participants[key],
-                                            matchId: match.id,
-                                            teamId: teamid,
-                                            playerId: player.id,
-                                        });
-                                    }
+                const newSeries = await createMatchSeries({ ...s, tournamentId: tournament.id });
+
+                if (s.match2games) {
+                    const matches = await Promise.all(
+                        s.match2games.map(async (m) => {
+                            m.winner = m.winner == 1 ? team1.id : team2.id;
+                            m.scores = m.scores.join(" - ");
+                            const newMatch = await createMatch({ ...m, matchSeriesId: newSeries.id });
+                            if (m.participants) {
+                                for (const [id, data] of Object.entries(m.participants)) {
+                                    const info = id.split("_");
+                                    const playerInfo = s.match2opponents[info[0] - 1].match2players.find((p) => p.name == data.player);
+                                    const player = await getOrCreatePlayer(playerInfo);
+                                    const newPlayerTeamMatches = await createPlayerTeamMatch({
+                                        ...data,
+                                        matchId: newMatch.id,
+                                        playerId: player.id,
+                                        teamId: info[0] == 1 ? team1.id : team2.id,
+                                    });
                                 }
                             }
-                        }
-                    })
-                );
-                return series;
+                        })
+                    );
+                }
+                return s;
             })
         );
         return result;
@@ -83,38 +71,80 @@ async function updateMatches() {
     }
 }
 
-async function getOrCreateTeam(name) {
-    let foundTeam = await getValorantTeamByName(name);
+async function getOrCreateTeam(team) {
+    try {
+        /* let found = await getValorantTeamByName(team.name);
+        if (!found) {
+            let newTeam = {
+                name: team.name,
+                template: team.teamtemplate.template,
+                pagename: team.name.split(" ").join("_"),
+            };
+            if (team.teamtemplate.image) {
+                newTeam.logourl = await downloadImage(team.teamtemplate.imageurl, `teams/${team.teamtemplate.image}`);
+            }
+            if (team.teamtemplate.imagedark) {
+                newTeam.logourl = await downloadImage(team.teamtemplate.imagedarkurl, `teams/${team.teamtemplate.imagedark}`);
+            }
+            found = await createValorantTeam(newTeam);
+        } */
+        let newTeam = {
+            name: team.name,
+            template: team.teamtemplate.template,
+            pagename: team.name.split(" ").join("_"),
+        };
+        if (team.teamtemplate.image) {
+            newTeam.logourl = await downloadImage(team.teamtemplate.imageurl, `teams/${team.teamtemplate.image}`);
+        }
+        if (team.teamtemplate.imagedark) {
+            newTeam.logourl = await downloadImage(team.teamtemplate.imagedarkurl, `teams/${team.teamtemplate.imagedark}`);
+        }
+        newTeam = await findOrCreateValorantTeam(team);
+
+        return newTeam;
+    } catch (error) {}
+}
+
+/* async function getOrCreateTeam(team) {
+    let foundTeam = await getValorantTeamByName(team.name);
     if (!foundTeam) {
-        //console.log("Chiamata getTeam");
-        const newTeam = await getTeam("valorant", name);
-        if (newTeam.logourl) {
-            newTeam.logourl = await downloadImage(newTeam.logourl, `teams/${newTeam.logo}`);
-        }
-        if (newTeam.logodarkurl) {
-            newTeam.logodarkurl = await downloadImage(newTeam.logodarkurl, `teams/${newTeam.logodark}`);
-        }
-        if (!newTeam) {
-            newTeam.name = name;
+        let newTeam = await getTeamByName("valorant", team.name);
+
+        if (newTeam.length > 0) {
+            console.log("DENTRO PRIMO IF");
+
+            if (newTeam.logourl) {
+                newTeam.logourl = await downloadImage(newTeam.logourl, `teams/${newTeam.logo}`);
+            }
+            if (newTeam.logodarkurl) {
+                newTeam.logodarkurl = await downloadImage(newTeam.logodarkurl, `teams/${newTeam.logodark}`);
+            }
+        } else {
+            console.log("DENTRO SECONDO IF");
+
+            newTeam = {
+                name: team.name,
+                template: team.teamtemplate.template,
+            };
+            if (team.teamtemplate.image) {
+                newTeam.logourl = await downloadImage(team.teamtemplate.imageurl, `teams/${team.teamtemplate.image}`);
+            }
+            if (team.teamtemplate.imagedark) {
+                newTeam.logourl = await downloadImage(team.teamtemplate.imagedarkurl, `teams/${team.teamtemplate.imagedark}`);
+            }
         }
         foundTeam = await createValorantTeam(newTeam);
     }
     return foundTeam;
-}
+} */
 
-async function getOrCreatePlayer(name) {
-    let player = await getPlayerByName(name);
-    if (!player) {
-        const newPlayer = await getPlayer("valorant", name);
-        //console.log(newPlayer);
-        await new Promise((r) => setTimeout(r, 1000));
-        if (newPlayer) {
-            player = await createPlayer(newPlayer[0]);
-        }
-        console.log("_________________________");
-        console.log(player);
-    }
-    return player;
+async function getOrCreatePlayer(player) {
+    /* let newplayer = await getPlacementByPagename(player.name);
+    if (!newplayer) {
+        newplayer = await createPlayer({ pagename: player.name, nationality: player.flag });
+    } */
+    let newplayer = await findOrCreatePlayer(player);
+    return newplayer;
 }
 
 module.exports = updateMatches;

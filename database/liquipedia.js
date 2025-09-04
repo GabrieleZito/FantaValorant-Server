@@ -1,33 +1,12 @@
+const { Op } = require("sequelize");
 const { ValorantTeams, Matches, PlayerTeamMatches, MatchSeries } = require("../models");
-const Placements = require("../models/placements");
-const Players = require("../models/players");
-const Tournaments = require("../models/tournaments");
+const Placements = require("../models/liquipedia/placements");
+const Players = require("../models/liquipedia/players");
+const Tournaments = require("../models/liquipedia/tournaments");
 
 exports.createTournament = async (tournament) => {
     try {
-        const ntournament = await Tournaments.create({
-            pagename: tournament.pagename,
-            name: tournament.name,
-            shortname: tournament.shortname,
-            banner: tournament.banner,
-            bannerurl: tournament.bannerurl,
-            bannerdark: tournament.bannerdark,
-            bannerdarkurl: tournament.bannerdarkurl,
-            iconurl: tournament.iconurl,
-            icondarkurl: tournament.icondarkurl,
-            seriespage: tournament.seriespage,
-            previous: tournament.previous,
-            previous2: tournament.previous2,
-            next: tournament.next,
-            next2: tournament.next2,
-            mode: tournament.mode,
-            type: tournament.mode,
-            startdate: tournament.startdate,
-            enddate: tournament.enddate,
-            maps: tournament.maps,
-            liquipediatiertype: tournament.liquipediatiertype,
-            status: tournament.status,
-        });
+        const ntournament = await Tournaments.create(tournament);
         return ntournament;
     } catch (error) {
         console.error("Error in createTournament: ", error);
@@ -45,6 +24,20 @@ exports.getTournamentByPagename = async (pagename) => {
         return tournament;
     } catch (error) {
         console.error("Error in getTournamentByPagename: ", error);
+        throw error;
+    }
+};
+
+exports.getTournamentByName = async (name) => {
+    try {
+        const tournament = await Tournaments.findOne({
+            where: {
+                name: name,
+            },
+        });
+        return tournament;
+    } catch (error) {
+        console.error("Error in getTournamentByName: ", error);
         throw error;
     }
 };
@@ -73,26 +66,31 @@ exports.getPlacementByPagename = async (pagename) => {
     }
 };
 
+exports.deleteTodayPlacements = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    try {
+        console.log(`Deleting placements from ${today} to ${tomorrow}`);
+        const placements = await Placements.destroy({
+            where: {
+                date: {
+                    [Op.gte]: today,
+                    [Op.lt]: tomorrow,
+                },
+            },
+        });
+        return placements;
+    } catch (error) {
+        console.error("Error in deleteTodayPlacements: ", error);
+        throw error;
+    }
+};
+
 exports.createPlacement = async (placement) => {
     try {
-        const nPlacement = Placements.create({
-            pagename: placement.pagename,
-            objectname: placement.objectname,
-            tournament: placement.tournament,
-            series: placement.series,
-            parent: placement.parent,
-            placement: placement.placement,
-            prizemoney: placement.prizemoney,
-            mode: placement.mode,
-            type: placement.type,
-            liquipediatiertype: placement.liquipediatiertype,
-            opponentname: placement.opponentname,
-            opponenttemplate: placement.opponenttemplate,
-            opponenttype: placement.opponenttype,
-            qualifier: placement.qualifier,
-            qualifierpage: placement.qualifierpage,
-            tournamentId: placement.tournamentId,
-        });
+        const nPlacement = Placements.create(placement);
         return nPlacement;
     } catch (error) {
         console.error("Error in createPlacement");
@@ -126,23 +124,27 @@ exports.getTeamByPagename = async (pagename) => {
 
 exports.createValorantTeam = async (team) => {
     try {
-        const newteam = await ValorantTeams.create({
-            pagename: team.pagename,
-            objectname: team.objectname,
-            name: team.name,
-            region: team.region,
-            logo: team.logo,
-            logourl: team.logourl,
-            logodark: team.logodark,
-            logodarkurl: team.logodarkurl,
-            createdate: team.createdate,
-            earnings: team.earnings,
-            template: team.template,
-            status: team.status,
-        });
+        const newteam = await ValorantTeams.create(team);
         return newteam;
     } catch (error) {
-        console.error("Error in createValorantTeam: ", error);
+        if (error.name === "SequelizeUniqueConstraintError") {
+            console.log(`Team ${team.pagename} already in db`);
+        } else {
+            console.log("Error in getOrCreateTeam: ", error);
+        }
+        throw error;
+    }
+};
+
+exports.findOrCreateValorantTeam = async (team) => {
+    try {
+        const newP = await Players.findOrCreate({
+            where: { name: team.name },
+            defaults: team,
+        });
+        return newP;
+    } catch (error) {
+        console.log("Error in findOrCreatePlayer: ", error);
         throw error;
     }
 };
@@ -233,27 +235,23 @@ exports.getPlayerByPagename = async (pagename) => {
 
 exports.createPlayer = async (player) => {
     try {
-        const newP = await Players.create(player, {
-            fields: [
-                "pagename",
-                "objectname",
-                "alternateid",
-                "name",
-                "nationality",
-                "nationality2",
-                "nationality3",
-                "region",
-                "birthdate",
-                "teampagename",
-                "teamtemplate",
-                "status",
-                "earnings",
-                "extradata",
-            ],
-        });
+        const newP = await Players.create(player);
         return newP;
     } catch (error) {
         console.log("Error in createPlayer: ", error);
+        throw error;
+    }
+};
+
+exports.findOrCreatePlayer = async (player) => {
+    try {
+        const newP = await Players.findOrCreate({
+            where: { pagename: player.name },
+            defaults: player,
+        });
+        return newP;
+    } catch (error) {
+        console.log("Error in findOrCreatePlayer: ", error);
         throw error;
     }
 };

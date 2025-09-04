@@ -65,16 +65,17 @@ exports.getFinishedSeries = async (game, limit = 1000) => {
     }
 };
 
-exports.getPlacements = async (game, limit = 1000, offset = 0) => {
+exports.getTodayPlacements = async (game, limit = 1000, offset = 0) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+        //const today = "2025-9-05";
         const response = await axiosConf.get(`/placement`, {
             params: {
                 wiki: game,
                 limit: limit,
                 offset: offset,
-                conditions: `[[date::>${today}]] OR [[date::${today}]]`,
+                conditions: `[[date::${today}]]`,
             },
         });
         return response.data.result;
@@ -170,13 +171,18 @@ exports.getTeams = async (game, limit = 1000, offset = 0) => {
     }
 };
 
-exports.getTeam = async (game, name, limit = 1000) => {
+exports.getTeamByName = async (game, name, limit = 1000) => {
     try {
-        const parameters = [`wiki=${game}`, `limit=${limit}`, `conditions=[[status::active]]+AND+[[name::${name}]]`];
-        const response = await axiosConf.get(`/team?${parameters.join("&")}`);
+        const response = await axiosConf.get(`/team`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                conditions: `[[name::${name}]]`,
+            },
+        });
         return response.data.result;
     } catch (error) {
-        console.error("Error in getTeam: ", error);
+        console.error("Error in getTeamByPagename: ", error);
         throw error;
     }
 };
@@ -190,7 +196,7 @@ exports.getTournaments = async (game, limit = 1000, offset = 0) => {
                 wiki: game,
                 limit: limit,
                 offset: offset,
-                conditions: `[[startdate::>${today}]] OR [[startdate::${today}]]`,
+                //conditions: `[[startdate::>${today}]] OR [[startdate::${today}]]`,
             },
         });
         return response.data.result;

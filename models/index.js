@@ -2,15 +2,15 @@ const Friendships = require("./friendships");
 const LeagueMembers = require("./leagueMembers");
 const Leagues = require("./leagues");
 const LeagueTournaments = require("./leagueTournaments");
-const Matches = require("./matches");
-const MatchSeries = require("./matchseries");
-const Placements = require("./placements");
-const Players = require("./players");
-const PlayerTeamMatches = require("./playerTeamMatches");
+const Matches = require("./liquipedia/matches");
+const MatchSeries = require("./liquipedia/matchseries");
+const Placements = require("./liquipedia/placements");
+const Players = require("./liquipedia/players");
+const PlayerTeamMatches = require("./liquipedia/playerTeamMatches");
 const Tokens = require("./tokens");
-const Tournaments = require("./tournaments");
+const Tournaments = require("./liquipedia/tournaments");
 const UserProfile = require("./userProfile");
-const ValorantTeams = require("./ValorantTeams");
+const ValorantTeams = require("./liquipedia/ValorantTeams");
 
 UserProfile.hasMany(Friendships, { foreignKey: "senderId", as: "SentRequests" });
 UserProfile.hasMany(Friendships, { foreignKey: "receiverId", as: "ReceivedRequests" });
@@ -48,6 +48,9 @@ PlayerTeamMatches.belongsTo(Players, { foreignKey: "playerId" });
 
 ValorantTeams.hasMany(MatchSeries, { as: "SeriesWon", foreignKey: "winner" });
 MatchSeries.belongsTo(ValorantTeams, { as: "Winner", foreignKey: "winner" });
+
+ValorantTeams.hasMany(Matches, { as: "MatchesWon", foreignKey: "winner" });
+Matches.belongsTo(ValorantTeams, { as: "Winner", foreignKey: "winner" });
 
 module.exports = {
     UserProfile,

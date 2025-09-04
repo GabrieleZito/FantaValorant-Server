@@ -1,5 +1,5 @@
 const { Leagues, LeagueMembers, UserProfile } = require("../models");
-const Tournaments = require("../models/tournaments");
+const Tournaments = require("../models/liquipedia/tournaments");
 
 exports.createLeague = async (data, userId) => {
     try {
@@ -101,5 +101,3 @@ exports.getJoinedLeagues = async (userId) => {
         throw error;
     }
 };
-
-
