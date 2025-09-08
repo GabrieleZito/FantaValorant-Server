@@ -1,12 +1,6 @@
 const cron = require("node-cron");
-const { getPlacements, getTodayPlacements } = require("../../api/liquipedia");
-const {
-    getPlacementByPagename,
-    createPlacement,
-    updatePlacement,
-    getTournamentByPagename,
-    deleteTodayPlacements,
-} = require("../../database/liquipedia");
+const { getTodayPlacements } = require("../../api/liquipedia");
+const { createPlacement, getTournamentByPagename, deleteTodayPlacements } = require("../../database/liquipedia");
 
 cron.schedule("30 0 23 * * *", updatePlacements);
 

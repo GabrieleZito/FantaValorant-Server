@@ -80,14 +80,10 @@ app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/leagues", leaguesRouter);
 
-const updateMatches = require("./schedulers/daily/updateMatches.js");
-const updateTeams = require("./schedulers/daily/updateTeams.js");
-const updatePlayers = require("./schedulers/daily/updatePlayers.js");
-const updateTournaments = require("./schedulers/daily/updateTournaments.js");
-const updatePlacements = require("./schedulers/daily/updatePlacements.js");
+const { getNextTournaments } = require("./database/liquipedia.js");
 app.get("/prova", async (req, res) => {
-    updatePlacements();
-    res.json("result");
+    const result = await getNextTournaments();
+    res.json(result);
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

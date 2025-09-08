@@ -19,6 +19,7 @@ const LeagueSchema = z.object({
         .refine((val) => val <= 100000, { message: "Too many coins" }),
     isPublic: z.boolean().default(true),
     tournament: z.string().min(1, "Please select a category"),
+    teamname: z.string().min(1, "Enter a name"),
 });
 
 module.exports = { LeagueSchema };

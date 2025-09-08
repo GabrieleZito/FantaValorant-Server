@@ -14,6 +14,10 @@
 -   [] aggiungere controllo se i loghi esistono già prima di riscaricarli
 -   [] aggiungere check change sui player
 -   [] TYLOO ha il nome duplicato per due team
+-   [] togliere gli l'array results negli scheduler
+-   [] considerare di cambiare getPlayerByPagename con objectname
+-   [] aggiungere foreign key in players per i team
+-   [] aggiungere check duplicati in updateMatches per sicurezza
 
 # Client
 

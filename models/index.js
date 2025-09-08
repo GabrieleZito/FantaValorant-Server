@@ -11,6 +11,7 @@ const Tokens = require("./tokens");
 const Tournaments = require("./liquipedia/tournaments");
 const UserProfile = require("./userProfile");
 const ValorantTeams = require("./liquipedia/ValorantTeams");
+const UserTeams = require("./userTeams");
 
 UserProfile.hasMany(Friendships, { foreignKey: "senderId", as: "SentRequests" });
 UserProfile.hasMany(Friendships, { foreignKey: "receiverId", as: "ReceivedRequests" });
@@ -25,6 +26,9 @@ Leagues.belongsTo(UserProfile, { foreignKey: "createdBy", as: "Creator" });
 
 UserProfile.belongsToMany(Leagues, { through: LeagueMembers, as: "JoinedLeagues", foreignKey: "userId", otherKey: "leagueId" });
 Leagues.belongsToMany(UserProfile, { through: LeagueMembers, as: "Members", foreignKey: "leagueId", otherKey: "userId" });
+
+LeagueMembers.belongsTo(UserTeams, { foreignKey: "teamId" });
+UserTeams.hasMany(LeagueMembers, { foreignKey: "teamId" });
 
 Leagues.belongsToMany(Tournaments, { through: LeagueTournaments, as: "Tournaments", otherKey: "tournamentId", foreignKey: "leagueId" });
 Tournaments.belongsToMany(Leagues, { through: LeagueTournaments, as: "League", otherKey: "leagueId", foreignKey: "tournamentId" });
@@ -66,4 +70,5 @@ module.exports = {
     MatchSeries,
     Players,
     Tournaments,
+    UserTeams,
 };

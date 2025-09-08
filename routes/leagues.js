@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { isLoggedIn, authenticateToken } = require("../middlewares/auth");
 const { LeagueSchema } = require("../utils/zod/LeagueSchema");
-const { createLeague, createLeagueMember, checkLeagueDuplicate, getJoinedLeagues } = require("../database/leagues");
+const { createLeague, createLeagueMember, checkLeagueDuplicate, getJoinedLeagues, createUserTeam } = require("../database/leagues");
 
 router.post("/", authenticateToken, async (req, res) => {
     const data = req.body;
@@ -26,10 +26,10 @@ router.post("/", authenticateToken, async (req, res) => {
 
             //creating league and member association
             const league = await createLeague(newLeague, userId);
-            const leagueMember = await createLeagueMember(userId, league.id, newLeague.coinsPerUser);
+            const userTeam = await createUserTeam(newLeague.teamname);
+            const leagueMember = await createLeagueMember(userId, league.id, newLeague.coinsPerUser, userTeam.id);
             if (league && leagueMember) {
-
-                if(newLeague.tournament == "all"){
+                if (newLeague.tournament == "all") {
                     
                 }
 

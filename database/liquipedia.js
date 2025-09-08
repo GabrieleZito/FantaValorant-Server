@@ -3,6 +3,7 @@ const { ValorantTeams, Matches, PlayerTeamMatches, MatchSeries } = require("../m
 const Placements = require("../models/liquipedia/placements");
 const Players = require("../models/liquipedia/players");
 const Tournaments = require("../models/liquipedia/tournaments");
+const sequelize = require("../config/sequelize");
 
 exports.createTournament = async (tournament) => {
     try {
@@ -138,13 +139,13 @@ exports.createValorantTeam = async (team) => {
 
 exports.findOrCreateValorantTeam = async (team) => {
     try {
-        const newP = await Players.findOrCreate({
-            where: { name: team.name },
+        const newP = await ValorantTeams.findOrCreate({
+            where: { name: { [Op.iLike]: `%${team.name}%` } },
             defaults: team,
         });
         return newP;
     } catch (error) {
-        console.log("Error in findOrCreatePlayer: ", error);
+        console.log("Error in findOrCreateValorantTeam for team" + team.name + ": ", error);
         throw error;
     }
 };
@@ -235,10 +236,66 @@ exports.getPlayerByPagename = async (pagename) => {
 
 exports.createPlayer = async (player) => {
     try {
-        const newP = await Players.create(player);
+        const newP = await Players.create({
+            pageid: player.pageid,
+            pagename: player.pagename,
+            namespace: player.namespace,
+            objectname: player.objectname,
+            liquipediaid: player.id,
+            alternateid: player.alternateid,
+            name: player.name,
+            localizedname: player.localizedname,
+            type: player.type,
+            nationality: player.nationality,
+            nationality2: player.nationality2,
+            nationality3: player.nationality3,
+            region: player.region,
+            birthdate: player.birthdate,
+            deathdate: player.deathdate,
+            teampagename: player.teampagename,
+            teamtemplate: player.teamtemplate,
+            links: player.links,
+            status: player.status,
+            earnings: player.earnings,
+            earningsbyyear: player.earningsbyyear,
+            extradata: player.extradata,
+        });
         return newP;
     } catch (error) {
         console.log("Error in createPlayer: ", error);
+        throw error;
+    }
+};
+
+exports.updatePlayer = async (oldP, newP) => {
+    try {
+        const updated = await oldP.update({
+            pageid: newP.pageid,
+            pagename: newP.pagename,
+            namespace: newP.namespace,
+            objectname: newP.objectname,
+            liquipediaid: newP.id,
+            alternateid: newP.alternateid,
+            name: newP.name,
+            localizedname: newP.localizedname,
+            type: newP.type,
+            nationality: newP.nationality,
+            nationality2: newP.nationality2,
+            nationality3: newP.nationality3,
+            region: newP.region,
+            birthdate: newP.birthdate,
+            deathdate: newP.deathdate,
+            teampagename: newP.teampagename,
+            teamtemplate: newP.teamtemplate,
+            links: newP.links,
+            status: newP.status,
+            earnings: newP.earnings,
+            earningsbyyear: newP.earningsbyyear,
+            extradata: newP.extradata,
+        });
+        return updated;
+    } catch (error) {
+        console.error("Error in updatePlayer: ", error);
         throw error;
     }
 };
@@ -247,7 +304,11 @@ exports.findOrCreatePlayer = async (player) => {
     try {
         const newP = await Players.findOrCreate({
             where: { pagename: player.name },
-            defaults: player,
+            defaults: {
+                pagename: player.name,
+                nationality: player.flag,
+                extradata: player.extradata,
+            },
         });
         return newP;
     } catch (error) {
@@ -272,6 +333,46 @@ exports.createPlayerTeamMatch = async (ptm) => {
         return newPTM;
     } catch (error) {
         console.error("Error in createPlayerTeamMatch: ", error);
+        throw error;
+    }
+};
+
+exports.getDuplicateTournaments = async () => {
+    try {
+        const duplicateRows = await Tournaments.findAll({
+            where: {
+                pagename: {
+                    [Op.in]: sequelize.literal(`(
+                        SELECT "pagename" 
+                        FROM "${Tournaments.tableName}" 
+                        GROUP BY "pagename" 
+                        HAVING COUNT(*) > 1
+                    )`),
+                },
+            },
+        });
+        return duplicateRows;
+    } catch (error) {
+        console.error("Error in getDuplicateTournaments: ", error);
+        throw error;
+    }
+};
+
+exports.getNextTournaments = async () => {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tournaments = await Tournaments.findAll({
+            where: {
+                enddate: {
+                    [Op.gte]: today,
+                },
+            },
+            group: "seriespage",
+        });
+        return tournaments
+    } catch (error) {
+        console.error("Error in getNextTournaments: ", error);
         throw error;
     }
 };

@@ -50,12 +50,11 @@ exports.getFinishedSeries = async (game, limit = 1000) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        //const today = "2025-08-30";
         const response = await axiosConf.get(`/match`, {
             params: {
                 wiki: game,
                 limit: limit,
-                conditions: `[[date::>${today}]] AND [[finished::1]] AND [[liquipediatiertype::!Showmatch]]`,
+                conditions: `([[date::${today}]] OR [[date::>${today}]]) AND [[finished::1]] AND [[liquipediatiertype::!Showmatch]]`,
             },
         });
         return response.data.result;
@@ -65,11 +64,32 @@ exports.getFinishedSeries = async (game, limit = 1000) => {
     }
 };
 
+exports.getQuarterlyPlacements = async (game, limit = 1000, offset = 0, startdate, endDate) => {
+    try {
+        startdate = `${startdate.getFullYear()}-${(startdate.getMonth() + 1).toString().padStart(2, "0")}-${startdate
+            .getDate()
+            .toString()
+            .padStart(2, "0")}`;
+        endDate = `${endDate.getFullYear()}-${(endDate.getMonth() + 1).toString().padStart(2, "0")}-${endDate.getDate().toString().padStart(2, "0")}`;
+        const response = await axiosConf.get(`/placement`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+                conditions: `[[startdate::>${startdate}]] AND [[startdate::<${endDate}]]`,
+            },
+        });
+        return response.data.result;
+    } catch (error) {
+        console.error("Error in getQuarterlyPlacements: ", error);
+        throw error;
+    }
+};
+
 exports.getTodayPlacements = async (game, limit = 1000, offset = 0) => {
     try {
         const date = new Date();
         const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        //const today = "2025-9-05";
         const response = await axiosConf.get(`/placement`, {
             params: {
                 wiki: game,
@@ -80,7 +100,7 @@ exports.getTodayPlacements = async (game, limit = 1000, offset = 0) => {
         });
         return response.data.result;
     } catch (error) {
-        console.error("Error in getplacement: ", error);
+        console.error("Error in getTodayPlacements: ", error);
         throw error;
     }
 };

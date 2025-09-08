@@ -1,7 +1,7 @@
 const cron = require("node-cron");
 const { getTournaments } = require("../../api/liquipedia");
 const { downloadImage } = require("../../utils/misc/downloadImage");
-const { createTournament, getTournamentByPagename, updateTournament } = require("../../database/liquipedia");
+const { createTournament, getTournamentByPagename, updateTournament, getDuplicateTournaments } = require("../../database/liquipedia");
 
 cron.schedule("0 0 23 * * *", updateTournaments);
 
@@ -14,7 +14,7 @@ async function updateTournaments() {
         let tournaments = await getTournaments("valorant");
         console.log(`Adding ${tournaments.length} tournaments`);
 
-        results.concat(
+        results = results.concat(
             await Promise.all(
                 tournaments.map(async (t) => {
                     const found = await getTournamentByPagename(t.pagename);
@@ -45,7 +45,7 @@ async function updateTournaments() {
             tournaments = await getTournaments("valorant", 1000, os);
             console.log(`Adding ${tournaments.length} tournaments`);
 
-            results.concat(
+            results = results.concat(
                 await Promise.all(
                     tournaments.map(async (t) => {
                         const found = await getTournamentByPagename(t.pagename);
@@ -72,6 +72,17 @@ async function updateTournaments() {
                 )
             );
         }
+        const duplicates = await getDuplicateTournaments();
+        let count = 0;
+        await Promise.all(
+            duplicates.map(async (d) => {
+                if (!d.name || !d.objectname) {
+                    await d.destroy();
+                    count++;
+                }
+            })
+        );
+        console.log(`Deleted ${count} duplicates`);
         return results;
     } catch (error) {
         console.error("Error in scheduler updating tournaments: ", error);

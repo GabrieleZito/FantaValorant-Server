@@ -1,4 +1,4 @@
-const { Leagues, LeagueMembers, UserProfile } = require("../models");
+const { Leagues, LeagueMembers, UserProfile, UserTeams } = require("../models");
 const Tournaments = require("../models/liquipedia/tournaments");
 
 exports.createLeague = async (data, userId) => {
@@ -17,13 +17,14 @@ exports.createLeague = async (data, userId) => {
     }
 };
 
-exports.createLeagueMember = async (userId, leagueId, coins) => {
+exports.createLeagueMember = async (userId, leagueId, coins, teamId) => {
     try {
         const leagueMember = await LeagueMembers.create({
             userId: userId,
             leagueId: leagueId,
             coins: coins,
             score: 0,
+            teamId: teamId,
         });
         return leagueMember;
     } catch (error) {
@@ -98,6 +99,32 @@ exports.getJoinedLeagues = async (userId) => {
         return user.JoinedLeagues;
     } catch (error) {
         console.error("Error in getJoinedLeagues: ", error);
+        throw error;
+    }
+};
+
+exports.createUserTeam = async (teamname) => {
+    try {
+        const userTeam = await UserTeams.create({
+            name: teamname,
+        });
+        return userTeam;
+    } catch (error) {
+        console.error("Error in createUserTeam: ", error);
+        throw error;
+    }
+};
+
+exports.getUserTeam = async (userId) => {
+    try {
+        const team = await LeagueMembers.findByPk(userId, {
+            include: {
+                model: UserTeams,
+            },
+        });
+        return team;
+    } catch (error) {
+        console.log("Error in getUserTeam: ", error);
         throw error;
     }
 };
