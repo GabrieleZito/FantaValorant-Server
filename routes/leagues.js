@@ -2,7 +2,17 @@ const express = require("express");
 const router = express.Router();
 const { isLoggedIn, authenticateToken } = require("../middlewares/auth");
 const { LeagueSchema } = require("../utils/zod/LeagueSchema");
-const { createLeague, createLeagueMember, checkLeagueDuplicate, getJoinedLeagues, createUserTeam } = require("../database/leagues");
+const {
+    createLeague,
+    createLeagueMember,
+    checkLeagueDuplicate,
+    getJoinedLeagues,
+    createUserTeam,
+    createLeagueTournaments,
+    createAuction,
+    addPlayersToAuction,
+} = require("../database/leagues");
+const { getTournamentsFromSeries } = require("../database/liquipedia");
 
 router.post("/", authenticateToken, async (req, res) => {
     const data = req.body;
@@ -29,9 +39,14 @@ router.post("/", authenticateToken, async (req, res) => {
             const userTeam = await createUserTeam(newLeague.teamname);
             const leagueMember = await createLeagueMember(userId, league.id, newLeague.coinsPerUser, userTeam.id);
             if (league && leagueMember) {
-                if (newLeague.tournament == "all") {
-                    
-                }
+                const tournaments = await getTournamentsFromSeries(newLeague.tournament);
+                await Promise.all(
+                    tournaments.map(async (t) => {
+                        await createLeagueTournaments(league.id, t.id);
+                    })
+                );
+                const auction = await createAuction(league.id);
+                await addPlayersToAuction(league.id, auction.id);
 
                 return res.status(200).json({
                     success: true,

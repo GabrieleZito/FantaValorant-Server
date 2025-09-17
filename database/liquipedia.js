@@ -206,6 +206,20 @@ exports.getValorantTeamByName = async (name) => {
     }
 };
 
+exports.getValorantTeamByPagename = async (pagename) => {
+    try {
+        const valorantTeam = await ValorantTeams.findOne({
+            where: {
+                pagename: pagename,
+            },
+        });
+        return valorantTeam;
+    } catch (error) {
+        console.error("Error in getValorantTeamByPagename: ", error);
+        throw error;
+    }
+};
+
 exports.getPlayerByName = async (name) => {
     try {
         const player = await Players.findOne({
@@ -269,30 +283,7 @@ exports.createPlayer = async (player) => {
 
 exports.updatePlayer = async (oldP, newP) => {
     try {
-        const updated = await oldP.update({
-            pageid: newP.pageid,
-            pagename: newP.pagename,
-            namespace: newP.namespace,
-            objectname: newP.objectname,
-            liquipediaid: newP.id,
-            alternateid: newP.alternateid,
-            name: newP.name,
-            localizedname: newP.localizedname,
-            type: newP.type,
-            nationality: newP.nationality,
-            nationality2: newP.nationality2,
-            nationality3: newP.nationality3,
-            region: newP.region,
-            birthdate: newP.birthdate,
-            deathdate: newP.deathdate,
-            teampagename: newP.teampagename,
-            teamtemplate: newP.teamtemplate,
-            links: newP.links,
-            status: newP.status,
-            earnings: newP.earnings,
-            earningsbyyear: newP.earningsbyyear,
-            extradata: newP.extradata,
-        });
+        const updated = await oldP.update(newP);
         return updated;
     } catch (error) {
         console.error("Error in updatePlayer: ", error);
@@ -368,11 +359,92 @@ exports.getNextTournaments = async () => {
                     [Op.gte]: today,
                 },
             },
-            group: "seriespage",
+            order: [["enddate", "ASC"]],
         });
-        return tournaments
+        return tournaments;
     } catch (error) {
         console.error("Error in getNextTournaments: ", error);
+        throw error;
+    }
+};
+
+exports.getSeries = async () => {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 1);
+    today.setDate(today.getDate() + 2);
+    try {
+        let series = await Tournaments.findAll({
+            where: {
+                startdate: {
+                    [Op.gt]: today,
+                },
+            },
+            attributes: ["seriespage"],
+            group: ["seriespage"],
+        });
+        series = series.map((s) => {
+            if (s.seriespage) return s.seriespage;
+        });
+        return series;
+    } catch (error) {
+        console.error("Error in getSeries: ", error);
+        throw error;
+    }
+};
+
+exports.getTournamentsFromSeries = async (series) => {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 1);
+    try {
+        const tournaments = await Tournaments.findAll({
+            where: {
+                seriespage: series,
+                startdate: {
+                    [Op.gt]: today,
+                },
+            },
+        });
+        return tournaments;
+    } catch (error) {
+        console.error("Error in getTournamentsFromSeries: ", error);
+        throw error;
+    }
+};
+
+exports.getPlayerByLiquipediaId = async (id) => {
+    try {
+        const player = await Players.findOne({
+            where: {
+                liquipediaid: id,
+            },
+        });
+        return player;
+    } catch (error) {
+        console.error("Error in getPlayerByLiquipediaId: ", error);
+        throw error;
+    }
+};
+
+exports.updatePlayerTeam = async (player, teamId) => {
+    try {
+        await player.update({ teamId: teamId });
+        return player;
+    } catch (error) {
+        console.error("Error in updatePlayerTeam: ", error);
+        throw error;
+    }
+};
+
+exports.getValorantTeamByTemplate = async (template) => {
+    try {
+        const team = await ValorantTeams.findOne({
+            where: {
+                template: template,
+            },
+        });
+        return team;
+    } catch (error) {
+        console.error("Error in getValorantTeamByTemplate: ", error);
         throw error;
     }
 };

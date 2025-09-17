@@ -14,7 +14,36 @@ async function updateTournaments() {
         let tournaments = await getTournaments("valorant");
         console.log(`Adding ${tournaments.length} tournaments`);
 
-        results = results.concat(
+        await Promise.all(
+            tournaments.map(async (t) => {
+                const found = await getTournamentByPagename(t.pagename);
+                if (t.iconurl) {
+                    t.iconurl = await downloadImage(t.iconurl, `tournaments/${t.icon}`);
+                }
+                if (t.icondarkurl) {
+                    t.icondarkurl = await downloadImage(t.icondarkurl, `tournaments/${t.icondark}`);
+                }
+                if (t.bannerurl) {
+                    t.bannerurl = await downloadImage(t.bannerurl, `tournaments/${t.banner}`);
+                }
+                if (t.bannerdarkurl) {
+                    t.bannerdarkurl = await downloadImage(t.bannerdarkurl, `tournaments/${t.bannerdark}`);
+                }
+                if (!found) {
+                    return await createTournament(t);
+                }
+                const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
+                if (hasChanges) {
+                    return await updateTournament(found, t);
+                }
+            })
+        );
+
+        while (tournaments.length > 999) {
+            os += 1000;
+            tournaments = await getTournaments("valorant", 1000, os);
+            console.log(`Adding ${tournaments.length} tournaments`);
+
             await Promise.all(
                 tournaments.map(async (t) => {
                     const found = await getTournamentByPagename(t.pagename);
@@ -38,38 +67,6 @@ async function updateTournaments() {
                         return await updateTournament(found, t);
                     }
                 })
-            )
-        );
-        while (tournaments.length > 0) {
-            os += 1000;
-            tournaments = await getTournaments("valorant", 1000, os);
-            console.log(`Adding ${tournaments.length} tournaments`);
-
-            results = results.concat(
-                await Promise.all(
-                    tournaments.map(async (t) => {
-                        const found = await getTournamentByPagename(t.pagename);
-                        if (t.iconurl) {
-                            t.iconurl = await downloadImage(t.iconurl, `tournaments/${t.icon}`);
-                        }
-                        if (t.icondarkurl) {
-                            t.icondarkurl = await downloadImage(t.icondarkurl, `tournaments/${t.icondark}`);
-                        }
-                        if (t.bannerurl) {
-                            t.bannerurl = await downloadImage(t.bannerurl, `tournaments/${t.banner}`);
-                        }
-                        if (t.bannerdarkurl) {
-                            t.bannerdarkurl = await downloadImage(t.bannerdarkurl, `tournaments/${t.bannerdark}`);
-                        }
-                        if (!found) {
-                            return await createTournament(t);
-                        }
-                        const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
-                        if (hasChanges) {
-                            return await updateTournament(found, t);
-                        }
-                    })
-                )
             );
         }
         const duplicates = await getDuplicateTournaments();

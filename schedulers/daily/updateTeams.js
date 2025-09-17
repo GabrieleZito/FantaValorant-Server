@@ -9,11 +9,31 @@ async function updateTeams() {
     console.log("Updating teams");
     try {
         let os = 0;
-        let results = [];
 
         let teams = await getTeams("valorant");
         console.log(`Updating ${teams.length} teams`);
-        results.concat(
+        await Promise.all(
+            teams.map(async (t) => {
+                const found = await getTeamByPagename(t.pagename);
+                if (t.logourl) {
+                    t.logourl = await downloadImage(t.logourl, `teams/${t.logo}`);
+                }
+                if (t.logodarkurl) {
+                    t.logodarkurl = await downloadImage(t.logodarkurl, `teams/${t.logodark}`);
+                }
+                if (!found) {
+                    return await createValorantTeam(t);
+                }
+                const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
+                if (hasChanges) {
+                    return await updateValorantTeam(found, t);
+                }
+            })
+        );
+        while (teams.length > 999) {
+            os += 1000;
+            teams = await getTeams("valorant", 1000, os);
+            console.log(`Updating ${teams.length} teams`);
             await Promise.all(
                 teams.map(async (t) => {
                     const found = await getTeamByPagename(t.pagename);
@@ -31,35 +51,9 @@ async function updateTeams() {
                         return await updateValorantTeam(found, t);
                     }
                 })
-            )
-        );
-        while (teams.length > 999) {
-            os += 1000;
-            teams = await getTeams("valorant", 1000, os);
-            console.log(`Updating ${teams.length} teams`);
-            results.concat(
-                await Promise.all(
-                    teams.map(async (t) => {
-                        const found = await getTeamByPagename(t.pagename);
-                        if (t.logourl) {
-                            t.logourl = await downloadImage(t.logourl, `teams/${t.logo}`);
-                        }
-                        if (t.logodarkurl) {
-                            t.logodarkurl = await downloadImage(t.logodarkurl, `teams/${t.logodark}`);
-                        }
-                        if (!found) {
-                            return await createValorantTeam(t);
-                        }
-                        const hasChanges = Object.keys(t).some((key) => found[key] !== t[key]);
-                        if (hasChanges) {
-                            return await updateValorantTeam(found, t);
-                        }
-                    })
-                )
             );
         }
-
-        return results;
+        console.log("Finished updating Teams");
     } catch (error) {
         console.error("Error updating teams: ", error);
     }

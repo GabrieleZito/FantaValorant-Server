@@ -18,6 +18,8 @@
 -   [] considerare di cambiare getPlayerByPagename con objectname
 -   [] aggiungere foreign key in players per i team
 -   [] aggiungere check duplicati in updateMatches per sicurezza
+-   [] i tournaments possono avere null come enddate, controllo su getNextTournaments
+-   [] aggiungere filter a get /tournaments/series
 
 # Client
 

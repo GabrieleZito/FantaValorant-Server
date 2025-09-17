@@ -273,3 +273,34 @@ exports.getCurrentVCTTournaments = async (game, limit = 1000) => {
         throw error;
     }
 };
+
+exports.getSquadPlayers = async (game, limit, offset) => {
+    try {
+        const response = await axiosConf.get("/squadplayer", {
+            params: {
+                wiki: game,
+                conditions: `[[status::active]]`,
+                limit: limit,
+                offset: offset,
+            },
+        });
+        return response.data.result;
+    } catch (error) {
+        throw error;
+    }
+};
+
+exports.getSquadPlayersByTemplate = async (game, teamtemplate) => {
+    try {
+        const response = await axiosConf.get("/squadplayer", {
+            params: {
+                wiki: game,
+                conditions: `[[teamtemplate::${teamtemplate}]] AND [[status::active]]`,
+                limit: 1000,
+            },
+        });
+        return response.data.result;
+    } catch (error) {
+        throw error;
+    }
+};

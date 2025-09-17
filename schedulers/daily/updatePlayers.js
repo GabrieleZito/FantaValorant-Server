@@ -8,34 +8,29 @@ async function updatePlayers() {
     console.log("Updating Players");
     try {
         let os = 0;
-        let results = [];
 
         let players = await getPlayers("valorant", 1000, os);
         console.log(`Updating ${players.length} players`);
-        results = results.concat(
+        await Promise.all(
+            players.map(async (p) => {
+                const found = await getPlayerByPagename(p.pagename);
+                if (!found) return await createPlayer({ ...p, liquipediaid: p.id });
+                return await updatePlayer(found, { ...p, liquipediaid: p.id });
+            })
+        );
+        while (players.length > 999) {
+            os += 1000;
+            players = await getPlayers("valorant", 1000, os);
+            console.log(`Updating ${players.length} players`);
             await Promise.all(
                 players.map(async (p) => {
                     const found = await getPlayerByPagename(p.pagename);
                     if (!found) return await createPlayer({ ...p, liquipediaid: p.id });
                     return await updatePlayer(found, { ...p, liquipediaid: p.id });
                 })
-            )
-        );
-        while (players.length > 999) {
-            os += 1000;
-            players = await getPlayers("valorant", 1000, os);
-            console.log(`Updating ${players.length} players`);
-            results = results.concat(
-                await Promise.all(
-                    players.map(async (p) => {
-                        const found = await getPlayerByPagename(p.pagename);
-                        if (!found) return await createPlayer({ ...p, liquipediaid: p.id });
-                        return await updatePlayer(found, { ...p, liquipediaid: p.id });
-                    })
-                )
             );
         }
-        return results;
+        console.log("Finished updating players");
     } catch (error) {
         console.log("Error updating players: ", error);
     }

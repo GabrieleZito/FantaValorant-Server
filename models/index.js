@@ -12,6 +12,8 @@ const Tournaments = require("./liquipedia/tournaments");
 const UserProfile = require("./userProfile");
 const ValorantTeams = require("./liquipedia/ValorantTeams");
 const UserTeams = require("./userTeams");
+const Auctions = require("./auctions");
+const AuctionPlayers = require("./auctionsPlayers");
 
 UserProfile.hasMany(Friendships, { foreignKey: "senderId", as: "SentRequests" });
 UserProfile.hasMany(Friendships, { foreignKey: "receiverId", as: "ReceivedRequests" });
@@ -56,6 +58,15 @@ MatchSeries.belongsTo(ValorantTeams, { as: "Winner", foreignKey: "winner" });
 ValorantTeams.hasMany(Matches, { as: "MatchesWon", foreignKey: "winner" });
 Matches.belongsTo(ValorantTeams, { as: "Winner", foreignKey: "winner" });
 
+ValorantTeams.hasMany(Players, { as: "Players", foreignKey: "teamId" });
+Players.belongsTo(ValorantTeams, { as: "Team", foreignKey: "teamId" });
+
+Auctions.belongsToMany(Players, { through: AuctionPlayers, as: "Auction Items", foreignKey: "auctionId", otherKey: "playerId" });
+Players.belongsToMany(Auctions, { through: AuctionPlayers, as: "Listed in", foreignKey: "playerId", otherKey: "auctionId" });
+
+Leagues.hasOne(Auctions, { foreignKey: "leagueId" });
+Auctions.belongsTo(Leagues);
+
 module.exports = {
     UserProfile,
     Friendships,
@@ -71,4 +82,6 @@ module.exports = {
     Players,
     Tournaments,
     UserTeams,
+    Auctions,
+    AuctionPlayers,
 };

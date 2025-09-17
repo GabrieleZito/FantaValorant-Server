@@ -75,15 +75,25 @@ app.use(
 const authRouter = require("./routes/auth.js");
 const usersRouter = require("./routes/users.js");
 const leaguesRouter = require("./routes/leagues.js");
+const tournamentsRouter = require("./routes/tournaments.js");
 app.use("/public", express.static("public"));
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 app.use("/leagues", leaguesRouter);
+app.use("/tournaments", tournamentsRouter);
 
 const { getNextTournaments } = require("./database/liquipedia.js");
+const { Tournaments, Placements } = require("./models/index.js");
+const { Op } = require("sequelize");
+const updateSquadPlayers = require("./schedulers/daily/updateSquadPlayers.js");
+const updateTournaments = require("./schedulers/daily/updateTournaments.js");
+const updatePlacements = require("./schedulers/quarterly/updatePlacements.js");
+const updateTeams = require("./schedulers/daily/updateTeams.js");
+const updatePlayers = require("./schedulers/daily/updatePlayers.js");
+const { addPlayersToAuction } = require("./database/leagues.js");
 app.get("/prova", async (req, res) => {
-    const result = await getNextTournaments();
-    res.json(result);
+    const placements = await addPlayersToAuction(1, 1);
+    res.json(placements);
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));
