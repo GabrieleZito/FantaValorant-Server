@@ -44,6 +44,22 @@ exports.createLeagueMember = async (userId, leagueId, coins, teamId) => {
     }
 };
 
+exports.addTeamToLeagueMember = async (userId, leagueId, teamId) => {
+    try {
+        const lm = await LeagueMembers.findOne({
+            where: {
+                userId: userId,
+                leagueId: leagueId,
+            },
+        });
+        lm.update({ teamId: teamId });
+        return lm;
+    } catch (error) {
+        console.error("Error in addTeamToLeagueMember: ", error);
+        throw error;
+    }
+};
+
 exports.findLeagueByName = async (name) => {
     try {
         const league = await Leagues.findOne({
@@ -206,6 +222,51 @@ exports.addPlayersToAuction = async (leagueId, auctionId) => {
         return y;
     } catch (error) {
         console.log("Error in addPlayersToAuction: ", error);
+        throw error;
+    }
+};
+
+exports.getLeagueById = async (leagueId) => {
+    try {
+        const league = await Leagues.findByPk(leagueId);
+        return league;
+    } catch (error) {
+        console.log("Error in getLeagueById: ", error);
+        throw error;
+    }
+};
+
+exports.getLeagueByName = async (name, isPublic) => {
+    try {
+        const league = await Leagues.findOne({
+            where: { name: name, isPublic: isPublic },
+            include: {
+                model: UserProfile,
+                as: "Members",
+                attributes: ["id", "propic", "username"],
+                through: {
+                    attributes: ["coins", "score", "teamId"],
+                },
+            },
+        });
+        await Promise.all(
+            league.Members.map(async (m) => {
+                const lm = await LeagueMembers.findOne({
+                    where: {
+                        leagueId: league.id,
+                        userId: m.id,
+                    },
+                    include: {
+                        model: UserTeams,
+                    },
+                });
+                m.dataValues.Team = lm.UserTeam;
+                //console.log(m.dataValues);
+            })
+        );
+        return league;
+    } catch (error) {
+        console.log("Error in getLeagueByName: ", error);
         throw error;
     }
 };

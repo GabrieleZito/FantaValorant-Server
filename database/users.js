@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { UserProfile, Tokens, Friendships } = require("../models");
+const { UserProfile, Tokens, Friendships, Invites, Leagues } = require("../models");
 const { hashString, hashToken } = require("../utils/misc/encrypt");
 
 // Int -> UserProfile
@@ -165,7 +165,7 @@ exports.declineFriendRequest = async (requestId, userId) => {
 
 exports.getFriends = async (userId) => {
     try {
-        const friends = await Friendships.findAll({
+        const friendships = await Friendships.findAll({
             where: {
                 [Op.or]: [{ receiverId: userId }, { senderId: userId }],
                 status: "accepted",
@@ -185,6 +185,11 @@ exports.getFriends = async (userId) => {
                 },
             ],
             order: [["updatedAt", "DESC"]],
+        });
+        const friends = friendships.map((friendship) => {
+            let newFriend = friendship.senderId === userId ? friendship.Receiver : friendship.Sender;
+            newFriend.dataValues.updatedAt = friendship.updatedAt;
+            return newFriend;
         });
         return friends;
     } catch (error) {
@@ -207,6 +212,66 @@ exports.getUserByRefreshToken = async (refreshToken) => {
         return user;
     } catch (error) {
         console.error("Error in getUserByRefreshToken: " + error);
+        throw error;
+    }
+};
+
+exports.createInvite = async (senderId, invitedId, leagueId) => {
+    try {
+        const invite = await Invites.findOrCreate({
+            where: {
+                senderId: senderId,
+                invitedId: invitedId,
+                leagueId: leagueId,
+            },
+        });
+        return invite;
+    } catch (error) {
+        console.error("Error in createInvite: " + error);
+        throw error;
+    }
+};
+
+exports.getReceivedInvites = async (userId) => {
+    try {
+        const invites = await Invites.findAll({
+            where: {
+                invitedId: userId,
+                status: "pending",
+            },
+            include: [
+                {
+                    model: Leagues,
+                },
+                {
+                    model: UserProfile,
+                    as: "Sender",
+                    attributes: ["id", "propic", "username"],
+                },
+            ],
+        });
+        return invites;
+    } catch (error) {
+        console.error("Error in getReceivedInvites: " + error);
+        throw error;
+    }
+};
+
+exports.acceptInvite = async (requestId, userId) => {
+    try {
+        const invite = await Invites.findOne({
+            where: {
+                id: requestId,
+                invitedId: userId,
+                status: "pending",
+            },
+        });
+        if (invite) {
+            await invite.update({ status: "accepted" });
+        }
+        return invite;
+    } catch (error) {
+        console.error("Error in acceptInvite: ", error);
         throw error;
     }
 };

@@ -14,11 +14,20 @@ const ValorantTeams = require("./liquipedia/ValorantTeams");
 const UserTeams = require("./userTeams");
 const Auctions = require("./auctions");
 const AuctionPlayers = require("./auctionsPlayers");
+const Invites = require("./invites");
 
 UserProfile.hasMany(Friendships, { foreignKey: "senderId", as: "SentRequests" });
-UserProfile.hasMany(Friendships, { foreignKey: "receiverId", as: "ReceivedRequests" });
 Friendships.belongsTo(UserProfile, { foreignKey: "senderId", as: "Sender" });
+UserProfile.hasMany(Friendships, { foreignKey: "receiverId", as: "ReceivedRequests" });
 Friendships.belongsTo(UserProfile, { foreignKey: "receiverId", as: "Receiver" });
+
+UserProfile.hasMany(Invites, { foreignKey: "senderId", as: "SentInvites" });
+Invites.belongsTo(UserProfile, { foreignKey: "senderId", as: "Sender" });
+UserProfile.hasMany(Invites, { foreignKey: "invitedId", as: "ReceivedInvites" });
+Invites.belongsTo(UserProfile, { foreignKey: "invitedId", as: "Invited" });
+
+Leagues.hasMany(Invites, { foreignKey: "leagueId" });
+Invites.belongsTo(Leagues, { foreignKey: "leagueId" });
 
 UserProfile.hasMany(Tokens, { foreignKey: "userId", as: "tokens", onDelete: "CASCADE" });
 Tokens.belongsTo(UserProfile, { foreignKey: "userId", as: "user" });
@@ -84,4 +93,5 @@ module.exports = {
     UserTeams,
     Auctions,
     AuctionPlayers,
+    Invites
 };

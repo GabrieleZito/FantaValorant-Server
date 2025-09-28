@@ -90,10 +90,13 @@ const updateTournaments = require("./schedulers/daily/updateTournaments.js");
 const updatePlacements = require("./schedulers/quarterly/updatePlacements.js");
 const updateTeams = require("./schedulers/daily/updateTeams.js");
 const updatePlayers = require("./schedulers/daily/updatePlayers.js");
-const { addPlayersToAuction } = require("./database/leagues.js");
+const { addPlayersToAuction, getLeagueByName } = require("./database/leagues.js");
 app.get("/prova", async (req, res) => {
-    const placements = await addPlayersToAuction(1, 1);
-    res.json(placements);
+    await updateTournaments();
+    await updatePlacements();
+    await updatePlayers();
+    await updateTeams();
+    await updateSquadPlayers();
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

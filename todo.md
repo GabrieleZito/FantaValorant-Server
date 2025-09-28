@@ -20,6 +20,7 @@
 -   [] aggiungere check duplicati in updateMatches per sicurezza
 -   [] i tournaments possono avere null come enddate, controllo su getNextTournaments
 -   [] aggiungere filter a get /tournaments/series
+-   [] updating placements righe eliminate più di quelle aggiunte
 
 # Client
 
@@ -30,4 +31,5 @@
 -   [] aggiungere remember me
 -   [] velocizzare caricamento font e img bg pagina login
 -   [] sistemare pagina inviti
--   [] chi manda la richiesta di amicizia vede se stesso come amico
+-   [x] chi manda la richiesta di amicizia vede se stesso come amico
+-   [] aggiungere controllo se l'asta è già cominciata

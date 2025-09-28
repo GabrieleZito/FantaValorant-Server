@@ -7,8 +7,8 @@ Friendships.init(
     {
         id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
             autoIncrement: true,
+            primaryKey: true,
         },
         status: {
             type: DataTypes.ENUM("pending", "accepted", "blocked", "declined"),

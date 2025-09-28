@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn, authenticateToken } = require("../middlewares/auth");
+const { authenticateToken } = require("../middlewares/auth");
 const {
     getUserByUsername,
     findAcceptedFriendship,
@@ -10,7 +10,11 @@ const {
     acceptFriendRequest,
     declineFriendRequest,
     getFriends,
+    createInvite,
+    getReceivedInvites,
+    acceptInvite,
 } = require("../database/users");
+const { getLeagueById, createLeagueMember } = require("../database/leagues");
 
 router.post("/friend-requests", authenticateToken, async (req, res) => {
     const userId = req.user.id;
@@ -169,5 +173,110 @@ router.get("/friends", authenticateToken, async (req, res) => {
         });
     }
 });
+
+router.post("/invites", authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const { leagueId, selectedFriend } = req.body;
+
+    if (!userId || !leagueId || !selectedFriend) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+
+    try {
+        const friendship = await findAcceptedFriendship(userId, selectedFriend.id);
+        if (!friendship) {
+            return res.status(403).json({
+                success: false,
+                message: "Cannot send friend request",
+            });
+        }
+
+        const invite = await createInvite(userId, selectedFriend.id, leagueId);
+        if (invite) {
+            return res.json({
+                success: true,
+                message: "Invite sent",
+            });
+        }
+    } catch (error) {
+        console.log("Error in /users/invites: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+});
+
+router.get("/invites/received", authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const invites = await getReceivedInvites(userId);
+        res.json({
+            success: true,
+            data: invites,
+        });
+    } catch (error) {
+        console.error("Error in /invites/received: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
+router.patch("/invites/:inviteId/accept", authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const inviteId = req.params["inviteId"];
+
+    if (!inviteId || isNaN(inviteId)) {
+        return res.status(400).json({
+            success: false,
+            message: "Not a valid request id",
+        });
+    }
+
+    try {
+        const invite = await acceptInvite(inviteId, userId);
+        if (!invite) {
+            return res.status(404).json({
+                success: false,
+                message: "Invite not found or already processed",
+            });
+        }
+
+        const league = await getLeagueById(invite.leagueId);
+        if (!league) {
+            return res.status(404).json({
+                success: false,
+                message: "League not found",
+            });
+        }
+
+        const lm = await createLeagueMember(userId, invite.leagueId, league.coins, null);
+        if (!lm) {
+            return res.status(400).json({
+                success: false,
+                message: "Could not add user to league",
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "League joined",
+        });
+    } catch (error) {
+        console.error("Error accepting invite: ", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
+router.patch("/invites/:inviteId/decline", authenticateToken, async (req, res) => {});
 
 module.exports = router;
