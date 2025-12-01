@@ -13,6 +13,7 @@ const {
     addPlayersToAuction,
     getLeagueByName,
     addTeamToLeagueMember,
+    getLeagueById,
 } = require("../database/leagues");
 const { getTournamentsFromSeries } = require("../database/liquipedia");
 
@@ -25,7 +26,7 @@ router.post("/", authenticateToken, async (req, res) => {
     //validating data
     if (result.success) {
         const newLeague = result.data;
-        console.log(newLeague);
+        //console.log(newLeague);
         try {
             //checking for league duplicate
             const existingLeague = await checkLeagueDuplicate(newLeague.name, newLeague.isPublic, userId);
@@ -47,8 +48,6 @@ router.post("/", authenticateToken, async (req, res) => {
                         await createLeagueTournaments(league.id, t.id);
                     })
                 );
-                const auction = await createAuction(league.id);
-                await addPlayersToAuction(league.id, auction.id);
 
                 return res.status(200).json({
                     success: true,
@@ -97,8 +96,6 @@ router.get("/:leaguename", authenticateToken, async (req, res) => {
     const parts = req.params.leaguename.split("-");
     const [name, publicFlag] = [parts.slice(0, -1).join("-"), parts.slice(-1)[0]];
     const userId = req.user.id;
-    console.log(name);
-    console.log(publicFlag);
 
     if (!name || !publicFlag || !["pub", "priv"].includes(publicFlag)) {
         return res.status(400).json({
@@ -174,7 +171,39 @@ router.post("/teams", authenticateToken, async (req, res) => {
 });
 
 router.post("/auctions", authenticateToken, async (req, res) => {
-    
-})
+    const { leagueId } = req.body;
+    //console.log(req.body);
+
+    if (!leagueId) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing data",
+        });
+    }
+    try {
+        const league = await getLeagueById(leagueId);
+        if (!league) {
+            return res.status(400).json({
+                success: false,
+                message: "League doesn't exist",
+            });
+        }
+
+        const auction = await createAuction(league.id);
+        //console.log(auction);
+        await addPlayersToAuction(league.id, auction.id);
+
+        return res.json({
+            success: true,
+            data: auction,
+            message: "Auction created",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
 
 module.exports = router;

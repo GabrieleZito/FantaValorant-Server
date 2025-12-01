@@ -19,6 +19,7 @@ exports.createLeague = async (data, userId) => {
             fee: data.participationFee,
             coins: data.coinsPerUser,
             isPublic: data.isPublic,
+            tournamentName: data.tournament,
             createdBy: userId,
         });
         return league;
@@ -171,7 +172,7 @@ exports.createLeagueTournaments = async (leagueId, tournamentId) => {
 
 exports.createAuction = async (leagueId) => {
     try {
-        const auction = await Auctions.create({ leagueId: leagueId });
+        const [auction, created] = await Auctions.findOrCreate({ where: { leagueId: leagueId } });
         return auction;
     } catch (error) {
         console.log("Error in createAuction: ", error);
@@ -240,14 +241,20 @@ exports.getLeagueByName = async (name, isPublic) => {
     try {
         const league = await Leagues.findOne({
             where: { name: name, isPublic: isPublic },
-            include: {
-                model: UserProfile,
-                as: "Members",
-                attributes: ["id", "propic", "username"],
-                through: {
-                    attributes: ["coins", "score", "teamId"],
+            include: [
+                {
+                    model: UserProfile,
+                    as: "Members",
+                    attributes: ["id", "propic", "username"],
+                    through: {
+                        attributes: ["coins", "score", "teamId"],
+                    },
                 },
-            },
+                {
+                    model: Auctions,
+                    as: "Auction",
+                },
+            ],
         });
         await Promise.all(
             league.Members.map(async (m) => {
@@ -267,6 +274,36 @@ exports.getLeagueByName = async (name, isPublic) => {
         return league;
     } catch (error) {
         console.log("Error in getLeagueByName: ", error);
+        throw error;
+    }
+};
+
+exports.getAuctionById = async (auctionId) => {
+    try {
+        const auction = await Auctions.findByPk(auctionId);
+        return auction;
+    } catch (error) {
+        console.error("Error in getAuctionById: ", error);
+        throw error;
+    }
+};
+
+exports.getAuctionItems = async (auctionId) => {
+    try {
+        const items = await Auctions.findByPk(auctionId, {
+            include: {
+                model: Players,
+                as: "Auction Items",
+                through: {
+                    where: {
+                        finished: false,
+                    },
+                },
+            },
+        });
+        return items;
+    } catch (error) {
+        console.error("Error in getAuctionItems: ", error);
         throw error;
     }
 };

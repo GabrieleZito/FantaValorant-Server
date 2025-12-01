@@ -33,7 +33,7 @@ socketHandler(io);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: false, alter: true }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: true, alter: true }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
@@ -90,13 +90,16 @@ const updateTournaments = require("./schedulers/daily/updateTournaments.js");
 const updatePlacements = require("./schedulers/quarterly/updatePlacements.js");
 const updateTeams = require("./schedulers/daily/updateTeams.js");
 const updatePlayers = require("./schedulers/daily/updatePlayers.js");
-const { addPlayersToAuction, getLeagueByName } = require("./database/leagues.js");
+const { addPlayersToAuction, getLeagueByName, getAuctionItems } = require("./database/leagues.js");
+const { default: axios } = require("axios");
 app.get("/prova", async (req, res) => {
-    await updateTournaments();
+    /* await updateTournaments();
     await updatePlacements();
     await updatePlayers();
     await updateTeams();
-    await updateSquadPlayers();
+    await updateSquadPlayers(); */
+    const items = await getAuctionItems(16);
+    res.json(items["Auction Items"]);
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

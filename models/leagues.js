@@ -21,6 +21,9 @@ Leagues.init(
             type: BOOLEAN,
             allowNull: false,
         },
+        tournamentName: {
+            type: STRING,
+        },
     },
     {
         sequelize,

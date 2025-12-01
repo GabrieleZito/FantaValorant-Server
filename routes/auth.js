@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const { setRefreshToken, getRefreshToken, invalidateToken } = require("../database/tokens");
 const { getDeviceInfo } = require("../utils/misc/getDeviceInfo");
 const { generateTokens } = require("../utils/misc/generateTokens");
-const { email } = require("zod");
+
 require("../middlewares/passport-strategies");
 
 router.post("/register", async (req, res) => {

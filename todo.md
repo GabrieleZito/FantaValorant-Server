@@ -30,6 +30,8 @@
 -   [] lettura del payload dei jwt nel client
 -   [] aggiungere remember me
 -   [] velocizzare caricamento font e img bg pagina login
--   [] sistemare pagina inviti
+-   [x] sistemare pagina inviti
 -   [x] chi manda la richiesta di amicizia vede se stesso come amico
--   [] aggiungere controllo se l'asta è già cominciata
+-   [x] aggiungere controllo se l'asta è già cominciata
+-   [] sistemare visualizzazione inviti se il nome della league è troppo lungo
+-   [] cambiare il controllo sulla pagina dell'asta in socket, senza isSuccess

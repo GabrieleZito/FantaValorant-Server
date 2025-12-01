@@ -6,7 +6,7 @@ class Auctions extends Model {}
 Auctions.init(
     {
         currentItem: { type: INTEGER },
-        
+        status: { type: ENUM("paused", "running", "ended"), defaultValue: "paused" },
     },
     {
         sequelize,
