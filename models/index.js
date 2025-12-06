@@ -1,16 +1,8 @@
 const Friendships = require("./friendships");
 const LeagueMembers = require("./leagueMembers");
 const Leagues = require("./leagues");
-const LeagueTournaments = require("./leagueTournaments");
-const Matches = require("./liquipedia/matches");
-const MatchSeries = require("./liquipedia/matchseries");
-const Placements = require("./liquipedia/placements");
-const Players = require("./liquipedia/players");
-const PlayerTeamMatches = require("./liquipedia/playerTeamMatches");
 const Tokens = require("./tokens");
-const Tournaments = require("./liquipedia/tournaments");
 const UserProfile = require("./userProfile");
-const ValorantTeams = require("./liquipedia/ValorantTeams");
 const UserTeams = require("./userTeams");
 const Auctions = require("./auctions");
 const AuctionPlayers = require("./auctionsPlayers");
@@ -48,21 +40,12 @@ Bids.belongsTo(UserProfile, { as: "Bidder", foreignKey: "userId" });
 Auctions.hasMany(Bids, { as: "Bids", foreignKey: "auctionId" });
 Bids.belongsTo(Auctions, { as: "Auction", foreignKey: "auctionId" });
 
-
 module.exports = {
     UserProfile,
     Friendships,
     Tokens,
     Leagues,
     LeagueMembers,
-    LeagueTournaments,
-    ValorantTeams,
-    Matches,
-    Placements,
-    PlayerTeamMatches,
-    MatchSeries,
-    Players,
-    Tournaments,
     UserTeams,
     Auctions,
     AuctionPlayers,
