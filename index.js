@@ -39,10 +39,10 @@ sequelize.sync({ force: true, alter: true }).then(() => console.log("DB Connecte
 //TODO check helmet()
 
 //schedulers
-require("./schedulers/daily/updateTournaments.js");
+/* require("./schedulers/daily/updateTournaments.js");
 require("./schedulers/daily/updatePlacements.js");
 require("./schedulers/daily/updateTeams.js");
-require("./schedulers/daily/updateMatches.js");
+require("./schedulers/daily/updateMatches.js"); */
 
 //middleware
 app.set("trust proxy", 1);
@@ -82,22 +82,8 @@ app.use("/users", usersRouter);
 app.use("/leagues", leaguesRouter);
 app.use("/tournaments", tournamentsRouter);
 
-const { getNextTournaments } = require("./database/liquipedia.js");
-const { Tournaments, Placements } = require("./models/index.js");
-const { Op } = require("sequelize");
-const updateSquadPlayers = require("./schedulers/daily/updateSquadPlayers.js");
-const updateTournaments = require("./schedulers/daily/updateTournaments.js");
-const updatePlacements = require("./schedulers/quarterly/updatePlacements.js");
-const updateTeams = require("./schedulers/daily/updateTeams.js");
-const updatePlayers = require("./schedulers/daily/updatePlayers.js");
-const { addPlayersToAuction, getLeagueByName, getAuctionItems } = require("./database/leagues.js");
-const { default: axios } = require("axios");
 app.get("/prova", async (req, res) => {
-    /* await updateTournaments();
-    await updatePlacements();
-    await updatePlayers();
-    await updateTeams();
-    await updateSquadPlayers(); */
+
     const items = await getAuctionItems(16);
     res.json(items["Auction Items"]);
 });
