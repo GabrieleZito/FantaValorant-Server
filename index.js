@@ -33,16 +33,10 @@ socketHandler(io);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: true, alter: true }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: false, alter: true }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
-
-//schedulers
-/* require("./schedulers/daily/updateTournaments.js");
-require("./schedulers/daily/updatePlacements.js");
-require("./schedulers/daily/updateTeams.js");
-require("./schedulers/daily/updateMatches.js"); */
 
 //middleware
 app.set("trust proxy", 1);
@@ -76,6 +70,7 @@ const authRouter = require("./routes/auth.js");
 const usersRouter = require("./routes/users.js");
 const leaguesRouter = require("./routes/leagues.js");
 const tournamentsRouter = require("./routes/tournaments.js");
+const { importSeriesFromliquipedia, importMatchesFromliquipedia } = require("./schedulers/once/importFromLiquipedia.js");
 app.use("/public", express.static("public"));
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
@@ -83,9 +78,7 @@ app.use("/leagues", leaguesRouter);
 app.use("/tournaments", tournamentsRouter);
 
 app.get("/prova", async (req, res) => {
-
-    const items = await getAuctionItems(16);
-    res.json(items["Auction Items"]);
+    importMatchesFromliquipedia();
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));

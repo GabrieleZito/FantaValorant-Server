@@ -46,65 +46,6 @@ exports.getExternalMediaLink = async (game) => {
     }
 };
 
-exports.getFinishedSeries = async (game, limit = 1000) => {
-    try {
-        const date = new Date();
-        const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        const response = await axiosConf.get(`/match`, {
-            params: {
-                wiki: game,
-                limit: limit,
-                conditions: `([[date::${today}]] OR [[date::>${today}]]) AND [[finished::1]] AND [[liquipediatiertype::!Showmatch]]`,
-            },
-        });
-        return response.data.result;
-    } catch (error) {
-        //console.error("Error in getMatches: ", error);
-        throw error;
-    }
-};
-
-exports.getQuarterlyPlacements = async (game, limit = 1000, offset = 0, startdate, endDate) => {
-    try {
-        startdate = `${startdate.getFullYear()}-${(startdate.getMonth() + 1).toString().padStart(2, "0")}-${startdate
-            .getDate()
-            .toString()
-            .padStart(2, "0")}`;
-        endDate = `${endDate.getFullYear()}-${(endDate.getMonth() + 1).toString().padStart(2, "0")}-${endDate.getDate().toString().padStart(2, "0")}`;
-        const response = await axiosConf.get(`/placement`, {
-            params: {
-                wiki: game,
-                limit: limit,
-                offset: offset,
-                conditions: `[[startdate::>${startdate}]] AND [[startdate::<${endDate}]]`,
-            },
-        });
-        return response.data.result;
-    } catch (error) {
-        console.error("Error in getQuarterlyPlacements: ", error);
-        throw error;
-    }
-};
-
-exports.getTodayPlacements = async (game, limit = 1000, offset = 0) => {
-    try {
-        const date = new Date();
-        const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        const response = await axiosConf.get(`/placement`, {
-            params: {
-                wiki: game,
-                limit: limit,
-                offset: offset,
-                conditions: `[[date::${today}]]`,
-            },
-        });
-        return response.data.result;
-    } catch (error) {
-        console.error("Error in getTodayPlacements: ", error);
-        throw error;
-    }
-};
-
 //GET all players
 exports.getPlayers = async (game, limit = 1000, offset = 0) => {
     try {
@@ -122,6 +63,22 @@ exports.getPlayers = async (game, limit = 1000, offset = 0) => {
     }
 };
 
+exports.getTeams = async (game, limit = 1000, offset = 0) => {
+    try {
+        const response = await axiosConf.get(`/team`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+            },
+        });
+        return response.data.result;
+    } catch (error) {
+        console.error("Error in getTeams: ", error);
+        throw error;
+    }
+};
+
 //GET player by name
 exports.getPlayer = async (game, name) => {
     try {
@@ -135,12 +92,34 @@ exports.getPlayer = async (game, name) => {
     }
 };
 
-exports.getSeries = async (game) => {
+exports.getSeries = async (game, limit = 1000, offset = 0) => {
     try {
-        const response = await axiosConf.get(`/series?wiki=${game}`);
+        const response = await axiosConf.get(`/series`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+            },
+        });
         return response.data.result;
     } catch (error) {
         console.error("Error in getSeries: ", error);
+        throw error;
+    }
+};
+
+exports.getMatches = async (game, limit = 1000, offset = 0) => {
+    try {
+        const response = await axiosConf.get(`/match`, {
+            params: {
+                wiki: game,
+                limit: limit,
+                offset: offset,
+            },
+        });
+        return response.data.result;
+    } catch (error) {
+        console.error("Error in getMatches: ", error);
         throw error;
     }
 };
@@ -171,22 +150,6 @@ exports.getStandingsTables = async (game) => {
         return response.data.result;
     } catch (error) {
         console.error("Error in getStandingsTables: ", error);
-        throw error;
-    }
-};
-
-exports.getTeams = async (game, limit = 1000, offset = 0) => {
-    try {
-        const response = await axiosConf.get(`/team`, {
-            params: {
-                wiki: game,
-                limit: limit,
-                offset: offset,
-            },
-        });
-        return response.data.result;
-    } catch (error) {
-        console.error("Error in getTeams: ", error);
         throw error;
     }
 };
@@ -252,24 +215,6 @@ exports.getTeamTemplateList = async (game, template) => {
         return response.data.result;
     } catch (error) {
         console.error("Error in getTeamTemplateList: ", error);
-        throw error;
-    }
-};
-
-exports.getCurrentVCTTournaments = async (game, limit = 1000) => {
-    try {
-        const date = new Date();
-        const today = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-        const endOfYear = `${date.getFullYear()}-12-31`;
-        const parameters = [
-            `wiki=${game}`,
-            `limit=${limit}`,
-            `conditions=[[startdate::>${today}]]+AND+[[seriespage::VALORANT_Champions_Tour]]+AND+[[startdate::<${endOfYear}]]`,
-        ];
-        const response = await axiosConf.get(`/tournament?${parameters.join("&")}`);
-        return response.data.result;
-    } catch (error) {
-        //console.error("Error in getCurrentTournaments: ", error);
         throw error;
     }
 };

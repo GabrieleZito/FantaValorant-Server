@@ -1,7 +1,5 @@
 const express = require("express");
 const { getNextTournaments, getSeries } = require("../database/liquipedia");
-const { Tournaments } = require("../models");
-const { Op } = require("sequelize");
 const router = express.Router();
 
 router.get("/next", async (req, res) => {

@@ -223,22 +223,4 @@ exports.getAuctionById = async (auctionId) => {
     }
 };
 
-exports.getAuctionItems = async (auctionId) => {
-    try {
-        const items = await Auctions.findByPk(auctionId, {
-            include: {
-                model: Players,
-                as: "Auction Items",
-                through: {
-                    where: {
-                        finished: false,
-                    },
-                },
-            },
-        });
-        return items;
-    } catch (error) {
-        console.error("Error in getAuctionItems: ", error);
-        throw error;
-    }
-};
+

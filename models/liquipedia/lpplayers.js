@@ -1,10 +1,14 @@
-const { Model, JSONB } = require("sequelize");
+const { Model, JSONB, INTEGER, STRING } = require("sequelize");
 const sequelize = require("../../config/sequelize.js");
 
 class LPPlayers extends Model {}
 
 LPPlayers.init(
     {
+        pageid: { type: INTEGER },
+        namespace: { type: INTEGER },
+        pagename: { type: STRING },
+        wiki: { type: STRING },
         raw: { type: JSONB },
     },
     {
