@@ -33,7 +33,7 @@ socketHandler(io);
 
 //initialize database
 const sequelize = require("./config/sequelize.js");
-sequelize.sync({ force: false, alter: true }).then(() => console.log("DB Connected"));
+sequelize.sync({ force: false, alter: false }).then(() => console.log("DB Connected"));
 
 //TODO add csrf protection
 //TODO check helmet()
@@ -70,7 +70,13 @@ const authRouter = require("./routes/auth.js");
 const usersRouter = require("./routes/users.js");
 const leaguesRouter = require("./routes/leagues.js");
 const tournamentsRouter = require("./routes/tournaments.js");
-const { importSeriesFromliquipedia, importMatchesFromliquipedia } = require("./schedulers/once/importFromLiquipedia.js");
+const {
+    importSeriesFromliquipedia,
+    importMatchesFromliquipedia,
+    importPlayersFromLiquipedia,
+    importTeamsFromliquipedia,
+    importAllMatchesByDateRanges,
+} = require("./schedulers/once/importFromLiquipedia.js");
 app.use("/public", express.static("public"));
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
@@ -78,7 +84,10 @@ app.use("/leagues", leaguesRouter);
 app.use("/tournaments", tournamentsRouter);
 
 app.get("/prova", async (req, res) => {
-    importMatchesFromliquipedia();
+    importAllMatchesByDateRanges();
+    //importTeamsFromliquipedia();
+    //importSeriesFromliquipedia();
+    //importPlayersFromLiquipedia()
 });
 
 server.listen(PORT, () => console.log("Server listening on port " + PORT));
