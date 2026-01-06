@@ -108,13 +108,14 @@ exports.getSeries = async (game, limit = 1000, offset = 0) => {
     }
 };
 
-exports.getMatches = async (game, limit = 1000, offset = 0) => {
+exports.getMatches = async (game, limit = 1000, offset = 0, params) => {
     try {
         const response = await axiosConf.get(`/match`, {
             params: {
                 wiki: game,
                 limit: limit,
                 offset: offset,
+                conditions: params.date_from && params.date_to ? `[[date::>${params.date_from}]] AND [[date::<${params.date_to}]]` : "",
             },
         });
         return response.data.result;
