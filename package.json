@@ -2,33 +2,19 @@
   "name": "fantavalorant-server",
   "version": "1.0.0",
   "description": "",
+  "homepage": "https://github.com/GabrieleZito/FantaValorant-Server#readme",
+  "bugs": {
+    "url": "https://github.com/GabrieleZito/FantaValorant-Server/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GabrieleZito/FantaValorant-Server.git"
+  },
   "license": "ISC",
   "author": "",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "@socket.io/admin-ui": "^0.5.1",
-    "argon2": "^0.43.0",
-    "axios": "^1.11.0",
-    "compression": "^1.8.1",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.0",
-    "express": "^5.1.0",
-    "express-session": "^1.18.1",
-    "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "mysql2": "^3.15.3",
-    "node-cron": "^4.2.1",
-    "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
-    "pg": "^8.16.3",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.7",
-    "socket.io": "^4.8.1",
-    "zod": "^4.0.5"
   }
 }
