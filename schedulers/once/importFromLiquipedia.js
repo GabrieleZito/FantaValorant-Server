@@ -150,6 +150,43 @@ exports.importAllMatchesByDateRanges = async () => {
     console.log(`\n=== Import Complete. Total matches: ${grandTotal} ===`);
 };
 
+exports.importPlacements = async (startDate, endDate) => {
+    try {
+        let os = 0;
+        let totalFetched = 0;
+
+        while (true) {
+            const matches = await getMatches("valorant", 100, os, {
+                date_from: startDate,
+                date_to: endDate,
+            });
+
+            if (!matches || matches.length === 0) break;
+
+            console.log(`Fetched ${matches.length} matches for period ${startDate} to ${endDate} (offset ${os})`);
+
+            await Promise.all(matches.map(async (p) => await createRawMatch(p)));
+
+            totalFetched += matches.length;
+
+            if (matches.length < 100) break;
+
+            os += 100;
+
+            // Stop if we hit offset limit for this date range
+            if (os >= 80000) {
+                console.log(`Hit offset limit for date range. Fetched ${totalFetched} matches.`);
+                break;
+            }
+        }
+
+        return totalFetched;
+    } catch (error) {
+        console.error("Error fetching matches: ", error.request.res.statusMessage);
+        return 0;
+    }
+};
+
 exports.importSeriesFromliquipedia = async () => {
     try {
         let os = 0;

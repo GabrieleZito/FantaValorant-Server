@@ -84,7 +84,6 @@ router.post("/register", async (req, res) => {
             //error response if the registration fails
             const response = {
                 success: false,
-                data: {},
                 message: error,
             };
             console.error(error);
@@ -163,14 +162,17 @@ router.post("/login", async (req, res) => {
             };
             res.status(200).json({
                 success: true,
-                message: "login successful",
+                message: "Login successful",
                 data: { user: data, accessToken: accessToken },
             });
         } else {
-            return res.status(401);
+            return res.status(401).json({
+                success: false,
+                message: "Wrong email or password",
+            });
         }
     } catch (error) {
-        console.error("Error il login", error);
+        console.error("Error in login", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -218,7 +220,7 @@ router.get("/refresh", async (req, res) => {
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
         if (err || user.username !== decoded.username) return res.sendStatus(403);
         const { accessToken, _ } = generateTokens(user);
-        res.status(200).json({ accessToken });
+        res.status(200).json({ success: true, data: { accessToken: accessToken }, message: "" });
     });
 });
 

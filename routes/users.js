@@ -64,7 +64,6 @@ router.post("/friend-requests", authenticateToken, async (req, res) => {
         res.status(201).json({
             success: true,
             message: "Friend request sent",
-            data: {},
         });
     } catch (error) {
         console.error("Friend request error: ", error);
@@ -79,7 +78,7 @@ router.get("/friend-requests/received", authenticateToken, async (req, res) => {
     const userId = req.user.id;
     try {
         const receivedRequests = await getReceivedFriendRequests(userId);
-        res.json(receivedRequests);
+        res.json({ success: true, data: receivedRequests });
     } catch (error) {
         console.error("Get Friend requests error: ", error);
         res.status(500).json({
@@ -152,14 +151,9 @@ router.patch("/friend-requests/:requestId/decline", authenticateToken, async (re
 
 router.get("/friends", authenticateToken, async (req, res) => {
     const userId = req.user.id;
-    //console.log(req.user);
-    //console.log("cookies: ");
-    //console.log(req.cookies);
+
     try {
         const friends = await getFriends(userId);
-        //console.log("get friend requests for id ", userId);
-        //console.log(friends);
-
         res.status(200).json({
             success: true,
             message: "Friends retrieved",
