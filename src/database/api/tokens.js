@@ -1,5 +1,5 @@
-import { Tokens, UserProfile } from "../";
-import { hashToken } from "../../utils/misc/encrypt";
+import { Tokens, UserProfile } from "../index.js";
+import { hashToken } from "../../utils/misc/encrypt.js";
 /**
  *
  * @param {number} userId

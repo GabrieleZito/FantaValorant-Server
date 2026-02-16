@@ -1,4 +1,6 @@
-import { UserProfile } from "../index.js";
+import { Op } from "sequelize";
+import { hashToken } from "../../utils/misc/encrypt.js";
+import { Friendships, Tokens, UserProfile } from "../index.js";
 
 /**
  * @typedef {Object} User
@@ -91,12 +93,226 @@ const createUser = async (user) => {
         throw error;
     }
 };
+/**
+ *
+ * @param {string} refreshToken
+ * @returns
+ */
+const getUserByRefreshToken = async (refreshToken) => {
+    try {
+        const tokenHash = hashToken(refreshToken);
+        const user = await UserProfile.findOne({
+            include: {
+                model: Tokens,
+                as: "tokens",
+                where: {
+                    tokenHash: tokenHash,
+                },
+            },
+        });
+        return user;
+    } catch (error) {
+        console.error("Error in getUserByRefreshToken: " + error);
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} userId1
+ * @param {number} userId2
+ * @returns
+ */
+const getAcceptedFriendship = async (userId1, userId2) => {
+    try {
+        const friendship = await Friendships.findOne({
+            where: {
+                [Op.or]: [
+                    { senderId: userId1, receiverId: userId2, status: "accepted" },
+                    { senderId: userId2, receiverId: userId1, status: "accepted" },
+                ],
+            },
+        });
+        return friendship;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} userId1
+ * @param {number} userId2
+ * @returns
+ */
+const getPendingFriendship = async (userId1, userId2) => {
+    try {
+        const friendship = await Friendships.findOne({
+            where: {
+                [Op.or]: [
+                    { senderId: userId1, receiverId: userId2, status: "pending" },
+                    { senderId: userId2, receiverId: userId1, status: "pending" },
+                ],
+            },
+        });
+        return friendship;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} senderId
+ * @param {number} receiverId
+ * @returns
+ */
+const createFriendRequest = async (senderId, receiverId) => {
+    try {
+        const request = await Friendships.create({
+            senderId: senderId,
+            receiverId: receiverId,
+            status: "pending",
+        });
+        return request;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} userId
+ * @returns
+ */
+const getReceivedRequests = async (userId) => {
+    try {
+        const requests = await Friendships.findAll({
+            where: {
+                receiverId: userId,
+                status: "pending",
+            },
+            include: {
+                model: UserProfile,
+                as: "Sender",
+                attributes: ["id", "username", "propic"],
+            },
+            order: [["createdAt", "DESC"]],
+        });
+        return requests;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} requestId
+ * @param {number} userId
+ * @returns
+ */
+const acceptRequest = async (requestId, userId) => {
+    try {
+        const request = await Friendships.findOne({
+            where: {
+                id: requestId,
+                receiverId: userId,
+                status: "pending",
+            },
+        });
+        if (!request) {
+            return null;
+        }
+        await request.update({
+            status: "accepted",
+        });
+        return request;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} requestId
+ * @param {number} userId
+ * @returns
+ */
+const declineRequest = async (requestId, userId) => {
+    try {
+        const request = await Friendships.findOne({
+            where: {
+                id: requestId,
+                receiverId: userId,
+                status: "pending",
+            },
+        });
+        if (!request) {
+            return null;
+        }
+        await request.update({
+            status: "declined",
+        });
+        return request;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/**
+ *
+ * @param {number} userId
+ * @returns
+ */
+const getUserFriends = async (userId) => {
+    try {
+        const friendships = await Friendships.findAll({
+            where: {
+                [Op.or]: [{ receiverId: userId }, { senderId: userId }],
+                status: "accepted",
+            },
+            include: [
+                {
+                    model: UserProfile,
+                    as: "Sender",
+                    attributes: ["id", "username", "propic"],
+                    required: false,
+                },
+                {
+                    model: UserProfile,
+                    as: "Receiver",
+                    attributes: ["id", "username", "propic"],
+                    required: false,
+                },
+            ],
+            order: [["updatedAt", "DESC"]],
+        });
+        const friends = friendships.map((friendship) => {
+            // @ts-ignore
+            let newFriend = friendship.senderId === userId ? friendship.Receiver : friendship.Sender;
+            // @ts-ignore
+            newFriend.dataValues.updatedAt = friendship.updatedAt;
+            return newFriend;
+        });
+        return friends;
+    } catch (error) {
+        throw error;
+    }
+};
 
 const userDB = {
     getUserById,
     getUserByEmail,
     getUserByUsername,
     createUser,
+    getUserByRefreshToken,
+    getAcceptedFriendship,
+    getPendingFriendship,
+    createFriendRequest,
+    getReceivedRequests,
+    acceptRequest,
+    declineRequest,
+    getUserFriends,
 };
 
 export default userDB;
