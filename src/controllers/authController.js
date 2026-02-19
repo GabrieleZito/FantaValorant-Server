@@ -235,60 +235,74 @@ const me = async (req, res) => {
 
         //No refresh token
         if (!refreshToken) {
-            return res.sendStatus(401);
+            return res.status(401).json({
+                success: false,
+                message: "No refresh token provided",
+            });
         }
 
-        let foundUser;
         const token = await tokensDB.getRefreshToken(refreshToken);
 
         //no refresh token in the db
         if (!token) {
-            return res.sendStatus(401);
+            return res.status(401).json({
+                success: false,
+                message: "Invalid refresh token",
+            });
         }
         //token revoked
         // @ts-ignore
         if (token.isRevoked) {
-            return res.sendStatus(401);
+            return res.status(401).json({
+                success: false,
+                message: "Refresh token has been revoked",
+            });
         }
 
-        // @ts-ignore
-        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-            if (err) {
-                return res.status(401).json({
-                    success: false,
-                    message: "Invalid or expired refresh token",
-                });
-            }
-            foundUser = decoded;
-        });
-        // @ts-ignore
-        const user = await userDB.getUserById(foundUser.id);
-        // @ts-ignore
-        const { accessToken } = generateTokens(foundUser);
-        return res.status(200).json({
-            success: true,
-            message: "Refresh token is valid",
-            data: {
-                user: {
-                    // @ts-ignore
-                    id: user.id,
-                    // @ts-ignore
-                    username: user.username,
-                    // @ts-ignore
-                    email: user.email,
-                    // @ts-ignore
-                    propic: user.propic,
-                    // @ts-ignore
-                    firstName: user.firstName,
-                    // @ts-ignore
-                    lastName: user.lastName,
-                    // @ts-ignore
-                    bio: user.bio,
-                    // @ts-ignore
-                    birthDay: user.birthDay,
-                },
-                accessToken: accessToken,
-            },
+        // Verify and decode the token
+        return new Promise((resolve) => {
+            // @ts-ignore
+            jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
+                if (err) {
+                    return resolve(
+                        res.status(401).json({
+                            success: false,
+                            message: "Invalid or expired refresh token",
+                        }),
+                    );
+                }
+                // @ts-ignore
+                const user = await userDB.getUserById(decoded.id);
+                // @ts-ignore
+                const { accessToken } = generateTokens(decoded);
+                return resolve(
+                    res.status(200).json({
+                        success: true,
+                        message: "Refresh token is valid",
+                        data: {
+                            user: {
+                                // @ts-ignore
+                                id: user.id,
+                                // @ts-ignore
+                                username: user.username,
+                                // @ts-ignore
+                                email: user.email,
+                                // @ts-ignore
+                                propic: user.propic,
+                                // @ts-ignore
+                                firstName: user.firstName,
+                                // @ts-ignore
+                                lastName: user.lastName,
+                                // @ts-ignore
+                                bio: user.bio,
+                                // @ts-ignore
+                                birthDay: user.birthDay,
+                            },
+                            accessToken: accessToken,
+                        },
+                    }),
+                );
+            });
         });
     } catch (error) {
         console.error("error in validate refresh endpoint: ", error);

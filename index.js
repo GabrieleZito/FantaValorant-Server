@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import { Server } from "socket.io";
 import { instrument } from "@socket.io/admin-ui";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 import sequelize from "./src/config/sequelize.js";
 config();
 
@@ -22,6 +23,7 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
     cors({
