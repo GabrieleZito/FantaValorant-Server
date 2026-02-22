@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import { config } from "dotenv";
+import pg from "pg";
 config();
 
 // @ts-ignore
@@ -14,7 +15,7 @@ config();
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     logging: false,
-    dialectModule: require("pg"),
+    dialectModule: pg,
     dialectOptions: {
         ssl: {
             require: true,
