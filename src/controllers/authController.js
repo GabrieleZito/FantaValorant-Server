@@ -20,14 +20,14 @@ const registerUser = async (req, res) => {
         try {
             // CHECKS FOR DUPLICATE USER
             if (await userDB.getUserByUsername(userData.username)) {
-                res.status(400).json({
+                return res.status(400).json({
                     success: false,
                     message: "Username already used",
                     data: { field: "username" },
                 });
             }
             if (await userDB.getUserByEmail(userData.email)) {
-                res.status(400).json({
+                return res.status(400).json({
                     success: false,
                     message: "Email already used",
                     data: { field: "email" },
@@ -55,7 +55,7 @@ const registerUser = async (req, res) => {
                 sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             });
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Registration complete",
                 data: {
@@ -82,14 +82,14 @@ const registerUser = async (req, res) => {
             });
         } catch (error) {
             console.log(error);
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 data: null,
                 message: "Something went wrong",
             });
         }
     } else {
-        res.status(400).json({
+        return res.status(400).json({
             success: false,
             message: "Input is not formatted correctly",
             data: {
@@ -122,7 +122,7 @@ const loginUser = async (req, res) => {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             });
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Login successful",
                 data: {
