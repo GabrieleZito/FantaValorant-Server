@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
+    "@types/pg": "^8.16.0",
     "jsdoc": "^4.0.5"
   }
 }

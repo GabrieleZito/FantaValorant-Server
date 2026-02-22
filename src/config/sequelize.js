@@ -11,9 +11,10 @@ config();
 }); */
 
 // @ts-ignore
-const sequelize = new Sequelize(process.env.DATABASE_URL , {
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     logging: false,
+    dialectModule: require("pg"),
     dialectOptions: {
         ssl: {
             require: true,
