@@ -22,15 +22,15 @@ const registerUser = async (req, res) => {
             if (await userDB.getUserByUsername(userData.username)) {
                 res.status(400).json({
                     success: false,
-                    message: "Email already used",
-                    data: { field: "email" },
+                    message: "Username already used",
+                    data: { field: "username" },
                 });
             }
             if (await userDB.getUserByEmail(userData.email)) {
                 res.status(400).json({
                     success: false,
-                    message: "Username already used",
-                    data: { field: "username" },
+                    message: "Email already used",
+                    data: { field: "email" },
                 });
             }
 
