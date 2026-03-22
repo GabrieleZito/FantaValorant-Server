@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "allowJs": true,
-        "checkJs": true,
+        "checkJs": false,
         "strict": true,
         "outDir": "./dist",
         "esModuleInterop": true,

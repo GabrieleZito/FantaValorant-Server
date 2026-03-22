@@ -54,15 +54,17 @@ instrument(io, {
 
 import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
+import esportRouter from "./src/routes/esport.js";
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
+app.use("/esport", esportRouter);
 
 const startServer = async () => {
     try {
         await sequelize.authenticate();
         console.log("Database connection established successfully.");
 
-        await sequelize.sync({ force: false, alter: false }); // Use { force: true } to drop tables
+        await sequelize.sync({ force: false, alter: false });
         console.log("Database synchronized.");
 
         server.listen(PORT, () => {
